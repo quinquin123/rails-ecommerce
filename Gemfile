@@ -33,6 +33,10 @@ gem 'faker' # Tạo dữ liệu giả
 gem 'money-rails' # Xử lý tiền tệ
 gem 'roo' # Đọc file Excel/CSV cho product_imports
 
+#frontend
+gem 'bootstrap', '~> 5.3.2'
+gem 'sassc-rails'
+
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
 

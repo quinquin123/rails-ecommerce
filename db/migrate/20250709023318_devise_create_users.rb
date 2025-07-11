@@ -33,7 +33,7 @@ class DeviseCreateUsers < ActiveRecord::Migration[7.1]
       # t.datetime :locked_at
       t.string :name
       t.string :role, null: false, default: 'buyer' # Enum: buyer, seller, admin
-      t.string :status, null: false, default: 'pending_approval'
+      t.string :status, null: false, default: 'active'
 
       t.timestamps null: false
     end
