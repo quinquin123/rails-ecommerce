@@ -37,6 +37,8 @@ gem 'roo' # Đọc file Excel/CSV cho product_imports
 gem 'bootstrap', '~> 5.3.2'
 gem 'sassc-rails'
 
+gem 'letter_opener', group: :development
+
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
 

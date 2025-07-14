@@ -1,0 +1,12 @@
+<div class="row">
+  <div class="col-md-12">
+    <h1>Admin Report</h1>
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <p><strong>Total Revenue:</strong> <%= number_to_currency(@total_revenue) %></p>
+        <p><strong>Active Users:</strong> <%= @active_users %></p>
+        <p><strong>Pending Sellers:</strong> <%= @pending_sellers %></p>
+      </div>
+    </div>
+  </div>
+</div>

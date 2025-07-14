@@ -1,6 +1,11 @@
 class ProductImportsController < ApplicationController
   before_action :authenticate_user!
 
+  def new
+    @product_import = ProductImport.new
+    authorize @product_import
+  end
+
   def create
     @import = current_user.product_imports.build(product_import_params.merge(seller_id: current_user.id))
     authorize @import

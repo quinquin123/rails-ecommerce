@@ -20,7 +20,7 @@ Rails.application.routes.draw do
   get 'products/edit'
   get 'products/update'
   get 'products/destroy'
-  devise_for :users
+  devise_for :users, controllers: { passwords: 'users/passwords' }
   root "products#index"
 
   resources :products do
@@ -34,11 +34,14 @@ Rails.application.routes.draw do
   end
   resources :orders, only: [:index, :show, :create]
   resources :reviews, only: [:create]
-  resources :product_imports, only: [:create]
+  resources :product_imports, only: [:new, :create]
   resources :users, only: [:index, :show, :edit, :update] do
     member do
       patch :approve
       patch :block
     end
   end
+  get 'reports/buyer', to: 'reports#buyer'
+  get 'reports/seller', to: 'reports#seller'
+  get 'reports/admin', to: 'reports#admin'
 end
