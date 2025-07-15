@@ -29,7 +29,6 @@ gem "jbuilder"
 gem 'devise' # Authentication
 gem 'pundit' # Authorization
 gem 'pg_search' # Tìm kiếm
-gem 'faker' # Tạo dữ liệu giả
 gem 'money-rails' # Xử lý tiền tệ
 gem 'roo' # Đọc file Excel/CSV cho product_imports
 
@@ -60,12 +59,16 @@ gem "bootsnap", require: false
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri mswin mswin64 mingw x64_mingw ]
+  gem 'rspec-rails', '~> 6.1.1'
+  gem 'factory_bot_rails'
+  gem 'faker'
+  gem 'shoulda-matchers', '~> 5.0'
+
 end
 
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
-
   # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
   # gem "rack-mini-profiler"
 

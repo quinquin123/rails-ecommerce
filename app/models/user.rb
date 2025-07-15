@@ -8,6 +8,8 @@ class User < ApplicationRecord
 
   validate :custom_email_validation
 
+  validates :role, presence: true
+
   has_one :cart, foreign_key: :buyer_id, dependent: :destroy
 
   after_initialize :set_default_role, if: :new_record?
@@ -20,6 +22,10 @@ class User < ApplicationRecord
   end
 
   def custom_email_validation
-    errors.add(:email, "phải thuộc domain @gmail.com") unless email.end_with?("@gmail.com")
+    return if email.blank? 
+
+    unless email.end_with?('@gmail.com')
+      errors.add(:email, 'phải thuộc domain @gmail.com')
+    end
   end
 end
