@@ -1,4 +1,437 @@
-<h1>Products#index</h1>
-<% @products.each do |product| %>
-  <p><%= product.title %> - <%= product.status %></p>
+<!-- products/index.html.erb -->
+<div class="page-header">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h1 class="page-title">
+        <i class="fas fa-shopping-bag me-3"></i>
+        Products
+      </h1>
+      <p class="page-subtitle">Discover amazing digital products</p>
+    </div>
+    <% if user_signed_in? && (current_user.seller? || current_user.admin?) %>
+      <%= link_to new_product_path, class: 'btn btn-primary' do %>
+        <i class="fas fa-plus me-2"></i>Add New Product
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<!-- Search Section -->
+<div class="search-section">
+  <div class="search-box">
+    <i class="fas fa-search search-icon"></i>
+    <input type="text" class="search-input" placeholder="Search products..." id="searchInput">
+  </div>
+  <button class="btn btn-secondary" id="filterBtn">
+    <i class="fas fa-filter me-2"></i>Filter
+  </button>
+</div>
+
+<!-- Products Grid -->
+<div class="products-grid" id="productsGrid">
+  <% @products.each do |product| %>
+    <div class="product-card" data-product-id="<%= product.id %>">
+      <div class="product-image">
+        <% if product.preview_url.present? %>
+          <img src="<%= product.preview_url %>" alt="<%= product.title %>" loading="lazy">
+        <% else %>
+          <div class="placeholder-image">
+            <i class="fas fa-image"></i>
+            <span>No Image</span>
+          </div>
+        <% end %>
+        <div class="product-overlay">
+          <%= link_to product_path(product), class: 'btn btn-primary btn-sm' do %>
+            <i class="fas fa-eye me-1"></i>View
+          <% end %>
+        </div>
+      </div>
+      
+      <div class="product-content">
+        <div class="product-header">
+          <h3 class="product-title"><%= truncate(product.title, length: 50) %></h3>
+          <div class="product-price">$<%= product.price %></div>
+        </div>
+        
+        <p class="product-description">
+          <%= truncate(product.description, length: 100) %>
+        </p>
+        
+        <div class="product-meta">
+          <span class="product-category">
+            <i class="fas fa-tag me-1"></i>
+            <%= product.category&.name || 'Uncategorized' %>
+          </span>
+          <span class="product-seller">
+            <i class="fas fa-user me-1"></i>
+            <%= product.seller&.name || 'Unknown' %>
+          </span>
+        </div>
+        
+        <% if product.tags.any? %>
+          <div class="product-tags">
+            <% product.tags.each do |tag| %>
+              <span class="tag"><%= tag %></span>
+            <% end %>
+          </div>
+        <% end %>
+        
+        <div class="product-actions">
+          <%= link_to product_path(product), class: 'btn btn-primary btn-sm' do %>
+            <i class="fas fa-eye me-1"></i>View Details
+          <% end %>
+          
+          <% if user_signed_in? && current_user.buyer? %>
+            <%= link_to cart_path, method: :post, params: { product_id: product.id }, class: 'btn btn-secondary btn-sm' do %>
+              <i class="fas fa-cart-plus me-1"></i>Add to Cart
+            <% end %>
+          <% end %>
+          
+          <% if user_signed_in? && (current_user == product.seller || current_user.admin?) %>
+            <div class="dropdown">
+              <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+              <ul class="dropdown-menu">
+                <li>
+                  <%= link_to edit_product_path(product), class: 'dropdown-item' do %>
+                    <i class="fas fa-edit me-2"></i>Edit
+                  <% end %>
+                </li>
+                <li>
+                  <%= link_to product_path(product), method: :delete, 
+                      data: { confirm: 'Are you sure?' }, 
+                      class: 'dropdown-item text-danger' do %>
+                    <i class="fas fa-trash me-2"></i>Delete
+                  <% end %>
+                </li>
+              </ul>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<% if @products.empty? %>
+  <div class="empty-state">
+    <div class="empty-icon">
+      <i class="fas fa-box-open"></i>
+    </div>
+    <h3>No products found</h3>
+    <p>There are no products available at the moment.</p>
+    <% if user_signed_in? && (current_user.seller? || current_user.admin?) %>
+      <%= link_to new_product_path, class: 'btn btn-primary' do %>
+        <i class="fas fa-plus me-2"></i>Add First Product
+      <% end %>
+    <% end %>
+  </div>
 <% end %>
+
+<style>
+  .page-header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+  }
+  
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+  }
+  
+  .page-subtitle {
+    color: #64748b;
+    font-size: 1.1rem;
+    margin: 0;
+  }
+  
+  .search-section {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+  
+  .search-box {
+    flex: 1;
+    min-width: 300px;
+    position: relative;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 0.8rem 1rem 0.8rem 3rem;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    font-size: 1rem;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+  
+  .search-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    background: rgba(255, 255, 255, 0.95);
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 1.1rem;
+  }
+  
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+  
+  .product-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+  }
+  
+  .product-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  }
+  
+  .product-image {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  
+  .product-card:hover .product-image img {
+    transform: scale(1.05);
+  }
+  
+  .placeholder-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 1.2rem;
+  }
+  
+  .placeholder-image i {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .product-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .product-card:hover .product-overlay {
+    opacity: 1;
+  }
+  
+  .product-content {
+    padding: 1.5rem;
+  }
+  
+  .product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+  
+  .product-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+    flex: 1;
+  }
+  
+  .product-price {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #667eea;
+    margin-left: 1rem;
+  }
+  
+  .product-description {
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+  
+  .product-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+  
+  .product-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .tag {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    padding: 0.2rem 0.5rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  
+  .product-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #64748b;
+  }
+  
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+  
+  .empty-state h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #1e293b;
+  }
+  
+  .dropdown-menu {
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+  }
+  
+  .dropdown-item {
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .dropdown-item:hover {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+  }
+  
+  @media (max-width: 768px) {
+    .products-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .search-section {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .search-box {
+      min-width: auto;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const productsGrid = document.getElementById('productsGrid');
+    const productCards = document.querySelectorAll('.product-card');
+    
+    // Search functionality
+    searchInput.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      
+      productCards.forEach(card => {
+        const title = card.querySelector('.product-title').textContent.toLowerCase();
+        const description = card.querySelector('.product-description').textContent.toLowerCase();
+        
+        if (title.includes(searchTerm) || description.includes(searchTerm)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+    
+    // Add to cart animation
+    document.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        if (this.classList.contains('btn-primary') || this.classList.contains('btn-secondary')) {
+          this.style.transform = 'scale(0.95)';
+          setTimeout(() => {
+            this.style.transform = 'scale(1)';
+          }, 100);
+        }
+      });
+    });
+  });
+</script>
