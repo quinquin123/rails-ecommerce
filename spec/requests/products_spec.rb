@@ -8,9 +8,9 @@ RSpec.describe "Products", type: :request do
     
     describe "GET /products" do
         it "shows active products for guest user" do
-            create(:product, title: "Đèn thần kỳ", status: "active")
+            product = create(:product, title: "Đèn thần kỳ", status: "active")
             get "/products"
-            expect(response.body).to include("active")
+            expect(response.body).to include(product.title)
             expect(response.body).to include("Đèn thần kỳ")
         end
     end
