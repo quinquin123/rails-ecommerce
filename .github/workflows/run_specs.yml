@@ -9,6 +9,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
+      DB_NAME: ci_test_db
       POSTGRES_PASSWORD: 1
       POSTGRES_USER: bndquynh
       POSTGRES_HOST: postgres
@@ -49,7 +50,6 @@ jobs:
 
       - name: Prepare Rails
         run: |
-          cp config/database.yml.ci config/database.yml || echo "Using ENV config"
           bundle install
           bundle exec rails db:create db:schema:load
           bundle exec rails webpacker:compile 
