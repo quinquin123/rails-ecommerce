@@ -17,12 +17,12 @@ jobs:
 
     services:
       postgres:
-        image: postgres:13
+        image: postgres:latest
         ports:
           - 5432:5432
         env:
-          POSTGRES_USER: bndquynh
-          POSTGRES_PASSWORD: 1
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -33,14 +33,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install dependencies
-        run: sudo apt-get install libpq-dev
-
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.0.2
           bundler-cache: true
+
+      - name: Install postgres client
+        run: sudo apt-get install libpq-dev
+
+      - name: Install dependencies
+        run: |
+          gem install bundle
+          bundle install
 
       - name: Install Node & Yarn
         run: |
@@ -50,8 +55,8 @@ jobs:
 
       - name: Prepare Rails
         run: |
-          bundle install
-          bundle exec rails db:create db:schema:load
+          RAILS_ENV=test bundle exec rails db:create
+          RAILS_ENV=test bundle exec rails db:migrate
 
       - name: Run the test suite
         run: bundle exec rspec     
