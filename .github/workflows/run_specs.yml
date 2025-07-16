@@ -9,7 +9,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      DB_NAME: ci_test_db
+      DB_NAME: rails_ecommerce_test
       POSTGRES_PASSWORD: 1
       POSTGRES_USER: bndquynh
       POSTGRES_HOST: postgres
@@ -17,7 +17,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres
+        image: postgres:13
         ports:
           - 5432:5432
         env:
@@ -52,7 +52,6 @@ jobs:
         run: |
           bundle install
           bundle exec rails db:create db:schema:load
-          bundle exec rails webpacker:compile 
 
       - name: Run the test suite
         run: bundle exec rspec     
