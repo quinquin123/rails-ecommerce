@@ -116,6 +116,10 @@ GEM
       responders
       warden (~> 1.2.3)
     diff-lcs (1.6.2)
+    dotenv (3.1.8)
+    dotenv-rails (3.1.8)
+      dotenv (= 3.1.8)
+      railties (>= 6.1)
     drb (2.2.3)
     erb (4.0.4)
       cgi (>= 0.3.3)
@@ -334,6 +338,7 @@ DEPENDENCIES
   capybara
   debug
   devise
+  dotenv-rails
   factory_bot_rails
   faker
   importmap-rails

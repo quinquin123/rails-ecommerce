@@ -1,30 +1,29 @@
-# spec/controllers/users_controller_spec.rb
+# spec/requests/users_spec.rb
 require 'rails_helper'
 
-RSpec.describe UsersController, type: :controller do
-    
+RSpec.describe 'Users', type: :request do
   let(:admin) { create(:user, role: 'admin') }
   let(:user) { create(:user) }
 
   before { sign_in admin }
 
-  describe 'GET #index' do
+  describe 'GET /users' do
     it 'returns success' do
-      get :index
+      get users_path
       expect(response).to be_successful
     end
   end
 
-  describe 'PATCH #approve' do
+  describe 'PATCH /users/:id/approve' do
     it 'updates user status to active' do
-      patch :approve, params: { id: user.id }
+      patch approve_user_path(user)
       expect(user.reload.status).to eq('active')
     end
   end
 
-  describe 'PATCH #block' do
+  describe 'PATCH /users/:id/block' do
     it 'updates user status to blocked' do
-      patch :block, params: { id: user.id }
+      patch block_user_path(user)
       expect(user.reload.status).to eq('blocked')
     end
   end

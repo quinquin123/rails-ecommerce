@@ -1,4 +1,12 @@
 class Product < ApplicationRecord
+  include PgSearch::Model
+
+  pg_search_scope :search_by_title_and_description,
+    against: [:title, :description],
+    using: {
+      tsearch: { prefix: true }
+    }
+    
   belongs_to :seller, class_name: 'User'
   belongs_to :category
   has_many :cart_items

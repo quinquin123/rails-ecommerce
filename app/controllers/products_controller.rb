@@ -1,5 +1,5 @@
 class ProductsController < ApplicationController
-  before_action :authenticate_user!, except: [:index, :show]
+  before_action :authenticate_user!, except: [:index, :show, :search]
   before_action :set_product, only: [:show, :edit, :update, :destroy]
   
   def index
@@ -48,10 +48,10 @@ class ProductsController < ApplicationController
     @products = if user_signed_in?
                   policy_scope(Product).search_by(params[:query])
                 else
-                  Product.where(status: 'active').search_by(params[:query])
+                  Product.where(status: 'active').search_by_title_and_description(params[:query])
                 end
     authorize Product, :index?
-    render :index
+    render json: @products
   end
 
   private

@@ -1,0 +1,58 @@
+name: Rails Specs
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: 1
+      POSTGRES_USER: bndquynh
+      POSTGRES_HOST: postgres
+      RAILS_ENV: test
+
+    services:
+      postgres:
+        image: postgres
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: bndquynh
+          POSTGRES_PASSWORD: 1
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: sudo apt-get install libpq-dev
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.0.2
+          bundler-cache: true
+
+      - name: Install Node & Yarn
+        run: |
+          curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          yarn install
+
+      - name: Prepare Rails
+        run: |
+          cp config/database.yml.ci config/database.yml || echo "Using ENV config"
+          bundle install
+          bundle exec rails db:create db:schema:load
+          bundle exec rails webpacker:compile 
+
+      - name: Run the test suite
+        run: bundle exec rspec     
