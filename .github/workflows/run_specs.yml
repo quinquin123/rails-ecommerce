@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DB_NAME: rails_ecommerce_test
-      POSTGRES_PASSWORD: 1
-      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_USER: bndquynh
       POSTGRES_HOST: 127.0.0.1
       RAILS_ENV: test
 
