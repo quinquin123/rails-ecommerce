@@ -11,7 +11,7 @@ jobs:
     env:
       DB_NAME: rails_ecommerce_test
       POSTGRES_PASSWORD: 1
-      POSTGRES_USER: bndquynh
+      POSTGRES_USER: postgres
       POSTGRES_HOST: postgres
       RAILS_ENV: test
 

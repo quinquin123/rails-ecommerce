@@ -27,7 +27,7 @@ development:
   # To create additional roles in PostgreSQL see `$ createuser --help`.
   # When left blank, PostgreSQL will use the default role. This is
   # the same name as the operating system user running Rails.
-  username: bndquynh
+  username: postgres
 
   # The password associated with the PostgreSQL role (username).
   password: 1
@@ -56,7 +56,7 @@ development:
 test:
   <<: *default
   database: <%= ENV['DB_NAME'] || 'rails_ecommerce_test' %>
-  username: <%= ENV['POSTGRES_USER'] || 'bndquynh' %>
+  username: <%= ENV['POSTGRES_USER'] || 'postgres' %>
   password: <%= ENV['POSTGRES_PASSWORD'] || '1' %>
   host: <%= ENV['POSTGRES_HOST'] || 'localhost' %>
 
