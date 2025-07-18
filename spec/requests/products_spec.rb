@@ -7,11 +7,10 @@ RSpec.describe "Products", type: :request do
     let(:product) { create(:product, seller: seller, category: category) }
     
     describe "GET /products" do
-        it "shows active products for guest user" do
-            product = create(:product, title: "Đèn thần kỳ", status: "active")
+        it "shows active products for buyer user" do
+            product = create(:product)
             get "/products"
             expect(response.body).to include(product.title)
-            expect(response.body).to include("Đèn thần kỳ")
         end
     end
     describe "POST #create" do
@@ -56,7 +55,7 @@ RSpec.describe "Products", type: :request do
     end
 
     describe "GET #search" do
-        it "returns filtered products for guest" do
+        it "returns filtered products for buyer" do
             product 
             get search_products_path, params: { query: product.title }
             puts "STATUS: #{response.status}"

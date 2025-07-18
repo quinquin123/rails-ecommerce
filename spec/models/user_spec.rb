@@ -21,6 +21,6 @@ RSpec.describe User, type: :model do
   it 'is invalid if email not ends with @gmail.com' do
     subject.email = 'user@example.com'
     expect(subject).to be_invalid
-    expect(subject.errors[:email]).to include('phải thuộc domain @gmail.com')
+    expect(subject.errors[:email]).to include('must belong to the domain @gmail.com')
   end
 end

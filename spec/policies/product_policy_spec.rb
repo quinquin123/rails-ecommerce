@@ -7,12 +7,12 @@ RSpec.describe ProductPolicy do
 
     let(:admin) { create(:user, :admin) }
     let(:seller) { create(:user, :seller) }
-    let(:guest) { nil }
+    let(:buyer) { nil }
     let(:seller_product) { create(:product, seller: seller) }
 
     describe '#index?' do
         it 'allows everyone' do
-            expect(subject.new(guest, product).index?).to be true
+            expect(subject.new(buyer, product).index?).to be true
             expect(subject.new(admin, product).index?).to be true
             expect(subject.new(seller, product).index?).to be true
         end
@@ -20,20 +20,20 @@ RSpec.describe ProductPolicy do
     describe '#show?' do
         context 'for active product' do
             it 'allows all users' do
-            product.update(status: 'active')
-            expect(subject.new(guest, product).show?).to be true
+                product.update(status: 'active')
+                expect(subject.new(buyer, product).show?).to be true
             end
         end
 
         context 'for seller viewing own product' do
             it 'allows access' do
-            expect(subject.new(seller, seller_product).show?).to be true
+                expect(subject.new(seller, seller_product).show?).to be true
             end
         end
 
         context 'for admin' do
             it 'allows access' do
-            expect(subject.new(admin, product).show?).to be true
+                expect(subject.new(admin, product).show?).to be true
             end
         end
 
@@ -48,7 +48,7 @@ RSpec.describe ProductPolicy do
         it 'allows admin and seller' do
             expect(subject.new(admin, product).create?).to be true
             expect(subject.new(seller, product).create?).to be true
-            expect(subject.new(guest, product).create?).to be false
+            expect(subject.new(buyer, product).create?).to be false
         end
     end
 
@@ -80,7 +80,7 @@ RSpec.describe ProductPolicy do
 
         subject { ProductPolicy::Scope.new(current_user, Product).resolve }
 
-        context 'guest user' do
+        context 'buyer user' do
             let(:current_user) { nil }
 
             it 'returns only active products' do

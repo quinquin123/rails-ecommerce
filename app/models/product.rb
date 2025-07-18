@@ -16,7 +16,5 @@ class Product < ApplicationRecord
   enum status: { active: 'active', moderated: 'moderated', deleted: 'deleted' }
   validates :title, :price, :status, presence: true
   validates :price, numericality: { greater_than_or_equal_to: 0 }
-  validates :reviews_count, numericality: { greater_than_or_equal_to: 0 }
 
-  scope :active, -> { where(status: :active) }
 end

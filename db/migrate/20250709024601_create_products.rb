@@ -7,7 +7,7 @@ class CreateProducts < ActiveRecord::Migration[7.1]
       t.decimal :price, precision: 10, scale: 2
       t.references :category, type: :uuid, null: false, foreign_key: true
       t.text :tags, array: true, default: []
-      t.string :status, default: 'active'
+      t.string :status, default: 'moderated'
       t.string :preview_url
       t.string :download_url
       t.decimal :average_rating, precision: 3, scale: 1

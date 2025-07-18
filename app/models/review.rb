@@ -8,6 +8,7 @@ class Review < ApplicationRecord
   #CallBacks
   after_save :update_product_rating
   after_destroy :update_product_rating
+  
   private
   def update_product_rating
     product.update(

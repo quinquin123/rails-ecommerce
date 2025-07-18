@@ -40,7 +40,6 @@ class ProductPolicy < ApplicationPolicy
     user.admin? || (user.seller? && record.seller_id == user.id)
   end
 
-  #Duyet sp
   def moderate?
     user.admin?
   end

@@ -86,7 +86,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_09_065418) do
     t.decimal "price", precision: 10, scale: 2
     t.uuid "category_id", null: false
     t.text "tags", default: [], array: true
-    t.string "status", default: "active"
+    t.string "status", default: "moderated"
     t.string "preview_url"
     t.string "download_url"
     t.decimal "average_rating", precision: 3, scale: 1
