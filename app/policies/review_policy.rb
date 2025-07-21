@@ -27,7 +27,7 @@ class ReviewPolicy < ApplicationPolicy
     user.admin? || record.buyer_id == user.id
   end
 
-  def destroy
+  def destroy?
     user.admin? || record.buyer_id == user.id
   end
 end

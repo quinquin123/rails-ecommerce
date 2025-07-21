@@ -1,0 +1,26 @@
+<% if @cart_item.destroyed? %>
+  var itemRow = document.getElementById('cart-item-<%= @cart_item.id %>');
+  if (itemRow) itemRow.remove();
+  
+  // Update total
+  var totalElement = document.querySelector('tfoot th:last-child');
+  if (totalElement) {
+    totalElement.textContent = '<%= number_to_currency(@cart.reload.total_price) %>';
+  }
+  
+  // Update cart count
+  var cartCount = document.getElementById('cart-count');
+  if (cartCount) {
+    cartCount.textContent = '<%= @cart.cart_items.count %>';
+  }
+  
+  // Show notice
+  showFlashNotice('Item removed from cart');
+  
+  // Reload if cart empty
+  <% if @cart.cart_items.empty? %>
+    setTimeout(() => { window.location.reload(); }, 1000);
+  <% end %>
+<% else %>
+  showFlashAlert('Failed to remove item');
+<% end %>

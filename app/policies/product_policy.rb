@@ -1,8 +1,16 @@
 class ProductPolicy < ApplicationPolicy
-  class Scope < ApplicationPolicy::Scope
+  class Scope
+    attr_reader :user, :scope
+
+    def initialize(user, scope)
+      @user = user
+      @scope = scope
+    end
+
     def resolve
-      return scope.none unless user
-      if user.admin?
+      if user.nil?
+        scope.where(status: 'active')
+      elsif user.admin?
         scope.all
       elsif user.seller?
         scope.where(seller_id: user.id)
@@ -21,7 +29,7 @@ class ProductPolicy < ApplicationPolicy
   end
 
   def create?
-    user.seller? || user.admin?
+    user.present? && (user.seller? || user.admin?)
   end
 
   def update?
@@ -32,7 +40,6 @@ class ProductPolicy < ApplicationPolicy
     user.admin? || (user.seller? && record.seller_id == user.id)
   end
 
-  #Duyet sp
   def moderate?
     user.admin?
   end

@@ -1,27 +1,181 @@
-<h1>Your Cart</h1>
-<% if @cart.cart_items.any? %>
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Product</th>
-        <th>Price</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @cart.cart_items.each do |item| %>
-        <tr>
-          <td><%= item.product.title %></td>
-          <td><%= number_to_currency(item.product.price) %></td>
-          <td>
-            <%= link_to 'Remove', remove_item_cart_path(item), method: :delete, class: 'btn btn-danger' %>
-          </td>
-        </tr>
+<div class="cart-container">
+  <div class="cart-header">
+    <h1><i class="fas fa-shopping-cart me-2"></i>Your Cart</h1>
+    <%= link_to products_path, class: 'btn btn-outline-primary' do %>
+      <i class="fas fa-arrow-left me-1"></i> Continue Shopping
+    <% end %>
+  </div>
+
+  <% if @cart.cart_items.any? %>
+    <div class="cart-items">
+      <table class="table table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Product</th>
+            <th class="text-end">Price</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @cart.cart_items.each do |item| %>
+            <tr class="cart-item" id="cart-item-<%= item.id %>">
+              <td>
+                <div class="d-flex align-items-center">
+                  <% if item.product.preview_url.present? %>
+                    <%= image_tag item.product.preview_url, class: 'cart-item-image me-3', alt: item.product.title %>
+                  <% else %>
+                    <div class="cart-item-image placeholder me-3">
+                      <i class="fas fa-image"></i>
+                    </div>
+                  <% end %>
+                  <div>
+                    <h5 class="mb-1"><%= item.product.title %></h5>
+                    <small class="text-muted"><%= item.product.category&.name || 'Uncategorized' %></small>
+                  </div>
+                </div>
+              </td>
+              <td class="text-end"><%= number_to_currency(item.product.price) %></td>
+              <td class="text-end">
+                <%= button_to remove_item_cart_path(id: item.id), method: :delete, 
+                    class: 'btn btn-outline-danger btn-sm', 
+                    data: { turbo: false },
+                    remote: true do %>
+                  <i class="fas fa-trash-alt"></i> Remove
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+        <tfoot>
+          <tr class="table-active">
+            <th colspan="2" class="text-end">Total:</th>
+            <th class="text-end"><%= number_to_currency(@cart.total_price) %></th>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="mt-4 cart-actions text-end">
+        <%= link_to new_order_path, class: 'btn btn-success checkout-btn' do %>
+          <i class="fas fa-credit-card me-1"></i> Proceed to Checkout
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <div class="py-5 text-center empty-cart">
+      <div class="mb-3 empty-icon">
+        <i class="fas fa-shopping-cart fa-4x text-muted"></i>
+      </div>
+      <h3 class="mb-3">Your cart is empty</h3>
+      <p class="mb-4 text-muted">Looks like you haven't added any items to your cart yet.</p>
+      <%= link_to products_path, class: 'btn btn-primary' do %>
+        <i class="fas fa-store me-1"></i> Browse Products
       <% end %>
-    </tbody>
-  </table>
-  <p><strong>Total:</strong> <%= number_to_currency(@cart.products.sum(:price)) %></p>
-  <%= link_to 'Checkout', new_order_path, class: 'btn btn-success' %>
-<% else %>
-  <p>Your cart is empty.</p>
-<% end %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .cart-container {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  }
+
+  .cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .cart-item-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  .cart-item-image.placeholder {
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+  }
+
+  .checkout-btn {
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+  }
+
+  .empty-cart {
+    padding: 4rem 0;
+  }
+
+  .empty-icon {
+    opacity: 0.3;
+  }
+
+  @media (max-width: 768px) {
+    .cart-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    
+    .cart-item-image {
+      width: 60px;
+      height: 60px;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Xử lý khi xóa item từ giỏ hàng
+    document.querySelectorAll('[data-turbo-method="delete"]').forEach(button => {
+      button.addEventListener('ajax:success', (event) => {
+        const [data, status, xhr] = event.detail;
+        const itemId = data.item_id;
+        const itemElement = document.getElementById(`cart-item-${itemId}`);
+        
+        if (itemElement) {
+          itemElement.remove();
+          updateCartTotal(data.new_total);
+          
+          // Hiển thị thông báo
+          showFlashNotice('Item removed from cart');
+          
+          // Nếu giỏ hàng trống, reload trang
+          if (data.cart_empty) {
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          }
+        }
+      });
+      
+      button.addEventListener('ajax:error', (event) => {
+        showFlashAlert('Failed to remove item from cart');
+      });
+    });
+    
+    function updateCartTotal(newTotal) {
+      const totalElement = document.querySelector('tfoot th:last-child');
+      if (totalElement) {
+        totalElement.textContent = newTotal;
+      }
+    }
+    
+    function showFlashNotice(message) {
+      // Tương tự như hàm đã định nghĩa trước đó
+    }
+    
+    function showFlashAlert(message) {
+      // Tương tự như hàm đã định nghĩa trước đó
+    }
+  });
+</script>

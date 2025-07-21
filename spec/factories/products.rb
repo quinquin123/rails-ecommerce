@@ -5,7 +5,8 @@ FactoryBot.define do
     price { Faker::Commerce.price(range: 0..100.0) }
     status { "active" }
     reviews_count { 0 }
-    seller { create(:user, :seller) }
-    category { create(:category) }
+    
+    association :seller, factory: [:user, :seller]
+    association :category
   end
 end

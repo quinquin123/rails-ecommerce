@@ -1,2 +1,13 @@
-<h1>Products#edit</h1>
-<p>Find me in app/views/products/edit.html.erb</p>
+<% if @product.errors.any? %>
+  <ul>
+    <% @product.errors.full_messages.each do |msg| %>
+      <li><%= msg %></li>
+    <% end %>
+  </ul>
+<% end %>
+
+<%= form_with model: @product do |form| %>
+  <%= form.label :title %>
+  <%= form.text_field :title %>
+  ...
+<% end %>

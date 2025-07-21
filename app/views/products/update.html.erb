@@ -1,2 +1,492 @@
-<h1>Products#update</h1>
-<p>Find me in app/views/products/update.html.erb</p>
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-md-10">
+    <!-- Success Message -->
+    <% if @product&.errors&.empty? && params[:action] == 'update' %>
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <strong>Success!</strong> Product "<%= @product.name %>" has been updated successfully.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+          <h3 class="card-title mb-0">
+            <i class="fas fa-check-circle me-2"></i>
+            Product Updated Successfully
+          </h3>
+        </div>
+        <div class="card-body">
+          <!-- Before/After Comparison -->
+          <% if session[:product_changes] %>
+            <div class="row mb-4">
+              <div class="col-12">
+                <h5 class="text-muted mb-3">
+                  <i class="fas fa-exchange-alt me-2"></i>
+                  Changes Made
+                </h5>
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Field</th>
+                        <th>Previous Value</th>
+                        <th>New Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% session[:product_changes].each do |field, values| %>
+                        <tr>
+                          <td><strong><%= field.humanize %></strong></td>
+                          <td class="text-muted">
+                            <% if values[0].present? %>
+                              <%= truncate(values[0].to_s, length: 50) %>
+                            <% else %>
+                              <em class="text-muted">Empty</em>
+                            <% end %>
+                          </td>
+                          <td class="text-success">
+                            <% if values[1].present? %>
+                              <%= truncate(values[1].to_s, length: 50) %>
+                            <% else %>
+                              <em class="text-muted">Empty</em>
+                            <% end %>
+                          </td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <% session.delete(:product_changes) %>
+          <% end %>
+
+          <!-- Updated Product Display -->
+          <div class="row">
+            <div class="col-md-4">
+              <% if @product.image.attached? %>
+                <%= image_tag @product.image, class: "img-fluid rounded shadow-sm", style: "max-height: 250px; width: 100%; object-fit: cover;" %>
+              <% else %>
+                <div class="bg-light border rounded d-flex align-items-center justify-content-center shadow-sm" style="height: 250px;">
+                  <i class="fas fa-image fa-3x text-muted"></i>
+                </div>
+              <% end %>
+            </div>
+            <div class="col-md-8">
+              <h4 class="text-primary mb-2"><%= @product.name %></h4>
+              <p class="mb-2">
+                <span class="badge bg-secondary fs-6"><%= @product.category&.humanize %></span>
+                <% if @product.featured? %>
+                  <span class="badge bg-warning fs-6 ms-1">Featured</span>
+                <% end %>
+              </p>
+              <h3 class="text-success mb-3">$<%= number_with_precision(@product.price, precision: 2) %></h3>
+              <p class="text-muted mb-3"><%= @product.description %></p>
+              
+              <div class="row text-muted">
+                <div class="col-sm-6">
+                  <small>
+                    <% if @product.version.present? %>
+                      <strong>Version:</strong> <%= @product.version %><br>
+                    <% end %>
+                    <% if @product.file_format.present? %>
+                      <strong>File Format:</strong> <%= @product.file_format %><br>
+                    <% end %>
+                    <% if @product.download_url.present? %>
+                      <strong>Download URL:</strong> <a href="<%= @product.download_url %>" target="_blank">Link</a><br>
+                    <% end %>
+                  </small>
+                </div>
+                <div class="col-sm-6">
+                  <small>
+                    <strong>Created:</strong> <%= @product.created_at.strftime("%B %d, %Y") %><br>
+                    <strong>Last Updated:</strong> <%= @product.updated_at.strftime("%B %d, %Y at %I:%M %p") %><br>
+                    <% if @product.respond_to?(:status) %>
+                      <strong>Status:</strong> 
+                      <span class="badge bg-<%= @product.status == 'active' ? 'success' : 'secondary' %> badge-sm">
+                        <%= @product.status&.humanize %>
+                      </span>
+                    <% end %>
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <hr class="my-4">
+          
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex gap-2 flex-wrap">
+              <%= link_to products_path, class: "btn btn-outline-primary" do %>
+                <i class="fas fa-list me-2"></i>
+                All Products
+              <% end %>
+              
+              <%= link_to new_product_path, class: "btn btn-outline-success" do %>
+                <i class="fas fa-plus me-2"></i>
+                Add New Product
+              <% end %>
+            </div>
+            
+            <div class="d-flex gap-2 flex-wrap">
+              <%= link_to edit_product_path(@product), class: "btn btn-warning" do %>
+                <i class="fas fa-edit me-2"></i>
+                Edit Again
+              <% end %>
+              
+              <%= link_to product_path(@product), class: "btn btn-primary" do %>
+                <i class="fas fa-eye me-2"></i>
+                View Product
+              <% end %>
+              
+              <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="fas fa-ellipsis-v me-2"></i>
+                  More Actions
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <%= link_to duplicate_product_path(@product), method: :post, class: "dropdown-item" do %>
+                      <i class="fas fa-copy me-2"></i>
+                      Duplicate Product
+                    <% end %>
+                  </li>
+                  <li>
+                    <%= link_to "#", class: "dropdown-item", data: { bs_toggle: "modal", bs_target: "#shareModal" } do %>
+                      <i class="fas fa-share me-2"></i>
+                      Share Product
+                    <% end %>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <%= link_to product_path(@product), 
+                        method: :delete, 
+                        data: { 
+                          turbo_method: :delete, 
+                          turbo_confirm: "Are you sure you want to delete #{@product.name}?" 
+                        }, 
+                        class: "dropdown-item text-danger" do %>
+                      <i class="fas fa-trash me-2"></i>
+                      Delete Product
+                    <% end %>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Share Modal -->
+      <div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="shareModalLabel">Share Product</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Share product "<%= @product.name %>" via:</p>
+              <div class="d-flex gap-3 justify-content-center">
+                <a href="https://www.facebook.com/sharer/sharer.php?u=<%= url_for(product_path(@product)) %>" target="_blank" class="btn btn-outline-primary">
+                  <i class="fab fa-facebook-f me-2"></i>Facebook
+                </a>
+                <a href="https://twitter.com/intent/tweet?url=<%= url_for(product_path(@product)) %>&text=<%= @product.name %>" target="_blank" class="btn btn-outline-info">
+                  <i class="fab fa-twitter me-2"></i>Twitter
+                </a>
+                <a href="mailto:?subject=Check out this product&body=<%= @product.name %>: <%= url_for(product_path(@product)) %>" class="btn btn-outline-secondary">
+                  <i class="fas fa-envelope me-2"></i>Email
+                </a>
+              </div>
+              <div class="mt-3">
+                <label class="form-label">Copy Link</label>
+                <div class="input-group">
+                  <input type="text" class="form-control" value="<%= url_for(product_path(@product)) %>" readonly>
+                  <button class="btn btn-outline-primary" onclick="copyToClipboard(this.previousElementSibling)" type="button">Copy</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    <% else %>
+      <!-- Error handling - render the edit form again with errors -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-danger text-white">
+          <h3 class="card-title mb-0">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Failed to Update Product
+          </h3>
+        </div>
+        <div class="card-body">
+          <% if @product&.errors&.any? %>
+            <div class="alert alert-danger" role="alert">
+              <h5><i class="fas fa-exclamation-triangle me-2"></i>Please fix the following errors:</h5>
+              <ul class="mb-0">
+                <% @product.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <!-- Re-render the edit form with errors -->
+          <%= form_with(model: @product, local: true, html: { multipart: true, class: "needs-validation", novalidate: true }) do |form| %>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <%= form.label :name, class: "form-label fw-semibold" %>
+                <%= form.text_field :name, class: "form-control #{'is-invalid' if @product.errors[:name].any?}", placeholder: "Enter product name", required: true %>
+                <% if @product.errors[:name].any? %>
+                  <div class="invalid-feedback">
+                    <%= @product.errors[:name].first %>
+                  </div>
+                <% end %>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <%= form.label :category, class: "form-label fw-semibold" %>
+                <%= form.select :category, 
+                    options_for_select([
+                      ['Software', 'software'],
+                      ['eBooks', 'ebooks'],
+                      ['Digital Art', 'digital_art'],
+                      ['Music', 'music'],
+                      ['Courses', 'courses'],
+                      ['Templates', 'templates'],
+                      ['Other', 'other']
+                    ], @product.category), 
+                    { prompt: 'Select a category' }, 
+                    { class: "form-select #{'is-invalid' if @product.errors[:category].any?}", required: true } %>
+                <% if @product.errors[:category].any? %>
+                  <div class="invalid-feedback">
+                    <%= @product.errors[:category].first %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <%= form.label :price, class: "form-label fw-semibold" %>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <%= form.number_field :price, step: 0.01, min: 0, class: "form-control #{'is-invalid' if @product.errors[:price].any?}", placeholder: "0.00", required: true %>
+                  <% if @product.errors[:price].any? %>
+                    <div class="invalid-feedback">
+                      <%= @product.errors[:price].first %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <%= form.label :version, class: "form-label fw-semibold" %>
+                <%= form.text_field :version, class: "form-control #{'is-invalid' if @product.errors[:version].any?}", placeholder: "e.g., v1.0" %>
+                <% if @product.errors[:version].any? %>
+                  <div class="invalid-feedback">
+                    <%= @product.errors[:version].first %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :description, class: "form-label fw-semibold" %>
+              <%= form.text_area :description, rows: 4, class: "form-control #{'is-invalid' if @product.errors[:description].any?}", placeholder: "Describe your product in detail..." %>
+              <div class="form-text">
+                <small class="text-muted">
+                  <i class="fas fa-info-circle me-1"></i>
+                  Provide a detailed description to help buyers understand your product better.
+                </small>
+              </div>
+              <% if @product.errors[:description].any? %>
+                <div class="invalid-feedback">
+                  <%= @product.errors[:description].first %>
+                </div>
+              <% end %>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :image, "Product Image", class: "form-label fw-semibold" %>
+              <% if @product.image.attached? %>
+                <div class="mb-2">
+                  <div class="d-flex align-items-center gap-3">
+                    <%= image_tag @product.image, class: "rounded", style: "max-height: 80px; max-width: 80px; object-fit: cover;" %>
+                    <div>
+                      <small class="text-muted">Current image</small><br>
+                      <small class="text-muted">Choose a new file to replace it</small>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+              <%= form.file_field :image, class: "form-control #{'is-invalid' if @product.errors[:image].any?}", accept: "image/*" %>
+              <div class="form-text">
+                <small class="text-muted">
+                  <i class="fas fa-camera me-1"></i>
+                  Upload a high-quality image of your product (JPG, PNG, or GIF format).
+                </small>
+              </div>
+              <% if @product.errors[:image].any? %>
+                <div class="invalid-feedback">
+                  <%= @product.errors[:image].first %>
+                </div>
+              <% end %>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <%= form.label :file_format, "File Format", class: "form-label fw-semibold" %>
+                <%= form.text_field :file_format, class: "form-control #{'is-invalid' if @product.errors[:file_format].any?}", placeholder: "e.g., PDF, MP4, ZIP" %>
+                <% if @product.errors[:file_format].any? %>
+                  <div class="invalid-feedback">
+                    <%= @product.errors[:file_format].first %>
+                  </div>
+                <% end %>
+              </div>
+
+              <div class="col-md-6">
+                <%= form.label :download_url, "Download URL", class: "form-label fw-semibold" %>
+                <%= form.url_field :download_url, class: "form-control #{'is-invalid' if @product.errors[:download_url].any?}", placeholder: "e.g., https://example.com/download" %>
+                <% if @product.errors[:download_url].any? %>
+                  <div class="invalid-feedback">
+                    <%= @product.errors[:download_url].first %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :featured, "Featured", class: "form-label fw-semibold" %>
+              <div class="form-check">
+                <%= form.check_box :featured, class: "form-check-input" %>
+                <%= form.label :featured, "Mark as featured product", class: "form-check-label" %>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="d-flex gap-2">
+                <%= link_to products_path, class: "btn btn-secondary" do %>
+                  <i class="fas fa-arrow-left me-2"></i>
+                  Back to Products
+                <% end %>
+                
+                <%= link_to product_path(@product), class: "btn btn-outline-primary" do %>
+                  <i class="fas fa-eye me-2"></i>
+                  View Product
+                <% end %>
+              </div>
+
+              <div class="d-flex gap-2">
+                <%= form.button type: "submit", name: "draft", class: "btn btn-outline-warning" do %>
+                  <i class="fas fa-save me-2"></i>
+                  Save as Draft
+                <% end %>
+                
+                <%= form.submit "Update Product", class: "btn btn-primary" do %>
+                  <i class="fas fa-sync-alt me-2"></i>
+                  Update Product
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Activity Log -->
+    <% if @product&.respond_to?(:versions) && @product.versions.any? %>
+      <div class="card shadow-sm mt-4">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-history me-2"></i>
+            Recent Changes
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="timeline">
+            <% @product.versions.limit(5).each do |version| %>
+              <div class="timeline-item">
+                <div class="timeline-marker bg-primary"></div>
+                <div class="timeline-content">
+                  <h6 class="timeline-title"><%= version.event.humanize %></h6>
+                  <p class="timeline-text text-muted">
+                    <small>
+                      <i class="fas fa-clock me-1"></i>
+                      <%= version.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+                      <% if version.whodunnit %>
+                        by <%= version.whodunnit %>
+                      <% end %>
+                    </small>
+                  </p>
+                  <% if version.changeset.any? %>
+                    <small class="text-muted">
+                      Changes: 
+                      <%= version.changeset.map { |k, v| "#{k.humanize}: #{v[0]} → #{v[1]}" }.join(', ') %>
+                    </small>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .card {
+    border: none;
+    border-radius: 12px;
+  }
+  
+  .card-header {
+    border-radius: 12px 12px 0 0 !important;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .form-control:focus,
+  .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 30px;
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+  }
+
+  .timeline-marker {
+    position: absolute;
+    left: -30px;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .timeline-content {
+    padding-left: 20px;
+    border-left: 2px solid #dee2e6;
+  }
+
+  .timeline-title {
+    margin-bottom: 5px;
+  }
+</style>
+
+<script>
+  function copyToClipboard(element) {
+    element.select();
+    document.execCommand('copy');
+    alert('Link copied to clipboard!');
+  }
+</script>

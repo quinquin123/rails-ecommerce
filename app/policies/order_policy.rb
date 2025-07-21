@@ -24,6 +24,6 @@ class OrderPolicy < ApplicationPolicy
   end
 
   def update?
-    user.admin? #Update status orders
+    user.admin? 
   end
 end

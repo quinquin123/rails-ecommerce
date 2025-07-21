@@ -1,2 +1,286 @@
-<h1>Products#new</h1>
-<p>Find me in app/views/products/new.html.erb</p>
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-md-10">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h3 class="card-title mb-0">
+          <i class="fas fa-plus-circle me-2"></i>
+          Add New Product
+        </h3>
+      </div>
+      <div class="card-body">
+        <%= form_with(model: @product, local: true, html: { multipart: true, class: "needs-validation", novalidate: true }) do |form| %>
+          <% if @product.errors.any? %>
+            <div class="alert alert-danger" role="alert">
+              <h5><i class="fas fa-exclamation-triangle me-2"></i>Please fix the following errors:</h5>
+              <ul class="mb-0">
+                <% @product.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <%= form.label :name, class: "form-label fw-semibold" %>
+              <%= form.text_field :name, class: "form-control #{'is-invalid' if @product.errors[:name].any?}", placeholder: "Enter product name", required: true %>
+              <% if @product.errors[:name].any? %>
+                <div class="invalid-feedback">
+                  <%= @product.errors[:name].first %>
+                </div>
+              <% end %>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <%= form.label :category, class: "form-label fw-semibold" %>
+              <%= form.select :category, 
+                  options_for_select([
+                    ['Electronics', 'electronics'],
+                    ['Clothing', 'clothing'],
+                    ['Books', 'books'],
+                    ['Home & Garden', 'home_garden'],
+                    ['Sports', 'sports'],
+                    ['Beauty', 'beauty'],
+                    ['Toys', 'toys'],
+                    ['Other', 'other']
+                  ], @product.category), 
+                  { prompt: 'Select a category' }, 
+                  { class: "form-select #{'is-invalid' if @product.errors[:category].any?}", required: true } %>
+              <% if @product.errors[:category].any? %>
+                <div class="invalid-feedback">
+                  <%= @product.errors[:category].first %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <%= form.label :price, class: "form-label fw-semibold" %>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <%= form.number_field :price, step: 0.01, min: 0, class: "form-control #{'is-invalid' if @product.errors[:price].any?}", placeholder: "0.00", required: true %>
+                <% if @product.errors[:price].any? %>
+                  <div class="invalid-feedback">
+                    <%= @product.errors[:price].first %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <%= form.label :quantity, class: "form-label fw-semibold" %>
+              <%= form.number_field :quantity, min: 0, class: "form-control #{'is-invalid' if @product.errors[:quantity].any?}", placeholder: "Available quantity", required: true %>
+              <% if @product.errors[:quantity].any? %>
+                <div class="invalid-feedback">
+                  <%= @product.errors[:quantity].first %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <%= form.label :description, class: "form-label fw-semibold" %>
+            <%= form.text_area :description, rows: 4, class: "form-control #{'is-invalid' if @product.errors[:description].any?}", placeholder: "Describe your product in detail..." %>
+            <div class="form-text">
+              <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Provide a detailed description to help buyers understand your product better.
+              </small>
+            </div>
+            <% if @product.errors[:description].any? %>
+              <div class="invalid-feedback">
+                <%= @product.errors[:description].first %>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="mb-3">
+            <%= form.label :image, "Product Image", class: "form-label fw-semibold" %>
+            <%= form.file_field :image, class: "form-control #{'is-invalid' if @product.errors[:image].any?}", accept: "image/*" %>
+            <div class="form-text">
+              <small class="text-muted">
+                <i class="fas fa-camera me-1"></i>
+                Upload a high-quality image of your product (JPG, PNG, or GIF format).
+              </small>
+            </div>
+            <% if @product.errors[:image].any? %>
+              <div class="invalid-feedback">
+                <%= @product.errors[:image].first %>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <%= form.label :brand, class: "form-label fw-semibold" %>
+              <%= form.text_field :brand, class: "form-control #{'is-invalid' if @product.errors[:brand].any?}", placeholder: "Product brand" %>
+              <% if @product.errors[:brand].any? %>
+                <div class="invalid-feedback">
+                  <%= @product.errors[:brand].first %>
+                </div>
+              <% end %>
+            </div>
+
+            <div class="col-md-6">
+              <%= form.label :condition, class: "form-label fw-semibold" %>
+              <%= form.select :condition, 
+                  options_for_select([
+                    ['New', 'new'],
+                    ['Like New', 'like_new'],
+                    ['Good', 'good'],
+                    ['Fair', 'fair'],
+                    ['Poor', 'poor']
+                  ], @product.condition), 
+                  { prompt: 'Select condition' }, 
+                  { class: "form-select #{'is-invalid' if @product.errors[:condition].any?}" } %>
+              <% if @product.errors[:condition].any? %>
+                <div class="invalid-feedback">
+                  <%= @product.errors[:condition].first %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <%= link_to products_path, class: "btn btn-secondary" do %>
+                <i class="fas fa-arrow-left me-2"></i>
+                Back to Products
+              <% end %>
+            </div>
+
+            <div class="d-flex gap-2">
+              <%= form.button type: "submit", name: "draft", class: "btn btn-outline-primary" do %>
+                <i class="fas fa-save me-2"></i>
+                Save as Draft
+              <% end %>
+              
+              <%= form.submit "Create Product", class: "btn btn-primary" do %>
+                <i class="fas fa-plus me-2"></i>
+                Create Product
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Preview Section -->
+    <div class="card shadow-sm mt-4" style="display: none;" id="product-preview">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-eye me-2"></i>
+          Product Preview
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4">
+            <div class="preview-image-placeholder bg-light border rounded d-flex align-items-center justify-content-center" style="height: 200px;">
+              <i class="fas fa-image fa-3x text-muted"></i>
+            </div>
+          </div>
+          <div class="col-md-8">
+            <h4 class="preview-name text-muted">Product Name</h4>
+            <p class="preview-category"><span class="badge bg-secondary">Category</span></p>
+            <h3 class="preview-price text-primary">$0.00</h3>
+            <p class="preview-description text-muted">Product description will appear here...</p>
+            <div class="preview-details">
+              <small class="text-muted">
+                <strong>Brand:</strong> <span class="preview-brand">-</span> |
+                <strong>Condition:</strong> <span class="preview-condition">-</span> |
+                <strong>Available:</strong> <span class="preview-quantity">0</span> items
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .card {
+    border: none;
+    border-radius: 12px;
+  }
+  
+  .card-header {
+    border-radius: 12px 12px 0 0 !important;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .form-control:focus,
+  .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  }
+  
+  .btn {
+    border-radius: 8px;
+    font-weight: 500;
+  }
+  
+  .form-label {
+    color: #495057;
+    margin-bottom: 0.5rem;
+  }
+  
+  .preview-image-placeholder {
+    border: 2px dashed #dee2e6 !important;
+  }
+</style>
+
+<script>
+  // Form validation and preview functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.needs-validation');
+    const previewSection = document.getElementById('product-preview');
+    
+    // Real-time preview updates
+    const nameInput = document.getElementById('product_name');
+    const categorySelect = document.getElementById('product_category');
+    const priceInput = document.getElementById('product_price');
+    const descriptionInput = document.getElementById('product_description');
+    const brandInput = document.getElementById('product_brand');
+    const conditionSelect = document.getElementById('product_condition');
+    const quantityInput = document.getElementById('product_quantity');
+    
+    function updatePreview() {
+      if (nameInput?.value || categorySelect?.value || priceInput?.value) {
+        previewSection.style.display = 'block';
+        
+        document.querySelector('.preview-name').textContent = nameInput?.value || 'Product Name';
+        document.querySelector('.preview-category').innerHTML = categorySelect?.value ? 
+          `<span class="badge bg-secondary">${categorySelect.options[categorySelect.selectedIndex].text}</span>` : 
+          '<span class="badge bg-secondary">Category</span>';
+        document.querySelector('.preview-price').textContent = priceInput?.value ? `$${priceInput.value}` : '$0.00';
+        document.querySelector('.preview-description').textContent = descriptionInput?.value || 'Product description will appear here...';
+        document.querySelector('.preview-brand').textContent = brandInput?.value || '-';
+        document.querySelector('.preview-condition').textContent = conditionSelect?.value ? 
+          conditionSelect.options[conditionSelect.selectedIndex].text : '-';
+        document.querySelector('.preview-quantity').textContent = quantityInput?.value || '0';
+      }
+    }
+    
+    // Add event listeners for preview updates
+    [nameInput, categorySelect, priceInput, descriptionInput, brandInput, conditionSelect, quantityInput].forEach(input => {
+      if (input) {
+        input.addEventListener('input', updatePreview);
+        input.addEventListener('change', updatePreview);
+      }
+    });
+    
+    // Form submission validation
+    form?.addEventListener('submit', function(event) {
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    });
+  });
+</script>
