@@ -1,0 +1,42 @@
+<% if @cart.errors.any? %>
+  alert('<%= j @cart.errors.full_messages.join('\n') %>');
+<% else %>
+  // Cập nhật số lượng trong giỏ hàng (nếu có indicator)
+  var cartCount = document.getElementById('cart-count');
+  if (cartCount) {
+    cartCount.textContent = '<%= @cart.cart_items.count %>';
+  }
+
+  // Hiển thị thông báo
+  showFlashNotice('Item added to cart successfully!');
+
+  // Animation cho nút
+  var addButton = document.querySelector('[data-product-id="<%= @product.id %>"] .add-to-cart');
+  if (addButton) {
+    addButton.innerHTML = '<i class="fas fa-check me-1"></i> Added';
+    addButton.classList.remove('btn-secondary');
+    addButton.classList.add('btn-success');
+    
+    setTimeout(() => {
+      addButton.innerHTML = '<i class="fas fa-cart-plus me-1"></i> Add to Cart';
+      addButton.classList.remove('btn-success');
+      addButton.classList.add('btn-secondary');
+    }, 2000);
+  }
+<% end %>
+
+function showFlashNotice(message) {
+  // Xóa thông báo cũ nếu có
+  const oldFlash = document.querySelector('.flash-message');
+  if (oldFlash) oldFlash.remove();
+  
+  // Tạo thông báo mới
+  const flash = document.createElement('div');
+  flash.className = 'alert alert-success flash-message';
+  flash.innerHTML = message;
+  document.body.appendChild(flash);
+  
+  setTimeout(() => {
+    flash.remove();
+  }, 3000);
+}

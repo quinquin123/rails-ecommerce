@@ -7,6 +7,7 @@ class User < ApplicationRecord
   enum status: { active: 'active', blocked: 'blocked', pending_approval: 'pending_approval', inactive: 'inactive' }
 
   has_one :cart, foreign_key: :buyer_id, dependent: :destroy
+  has_many :products, foreign_key: :seller_id, dependent: :destroy
   
   validate :custom_email_validation
   validates :role, presence: true

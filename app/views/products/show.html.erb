@@ -1,8 +1,7 @@
-<!-- products/show.html.erb -->
 <div class="product-detail">
   <div class="row">
     <!-- Product Image -->
-    <div class="col-lg-6 mb-4">
+    <div class="mb-4 col-lg-6">
       <div class="product-image-container">
         <% if @product.preview_url.present? %>
           <img src="<%= @product.preview_url %>" alt="<%= @product.title %>" class="product-main-image">
@@ -56,8 +55,8 @@
         
         <div class="product-actions">
           <% if user_signed_in? && current_user.buyer? %>
-            <%= link_to cart_path, method: :post, params: { product_id: @product.id }, class: 'btn btn-primary btn-lg' do %>
-              <i class="fas fa-cart-plus me-2"></i>Add to Cart
+            <%= button_to add_item_cart_path, method: :post, params: { product_id: @product.id }, class: 'btn btn-secondary btn-lg add-to-cart', remote: true do %>
+              <i class="fas fa-cart-plus me-1"></i> Add to Cart
             <% end %>
             
             <% if @product.download_url.present? %>
@@ -393,6 +392,53 @@
       }, 5000);
     });
   });
+  document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.add-to-cart').forEach(button => {
+    button.addEventListener('ajax:success', (event) => {
+      const [data, status, xhr] = event.detail;
+      // Hiển thị thông báo
+      showFlashNotice('Item added to cart successfully!');
+      
+      // Animation khi thêm vào giỏ hàng
+      button.innerHTML = '<i class="fas fa-check me-1"></i> Added';
+      button.classList.remove('btn-secondary');
+      button.classList.add('btn-success');
+      
+      setTimeout(() => {
+        button.innerHTML = '<i class="fas fa-cart-plus me-1"></i> Add to Cart';
+        button.classList.remove('btn-success');
+        button.classList.add('btn-secondary');
+      }, 2000);
+    });
+    
+    button.addEventListener('ajax:error', (event) => {
+      const [data, status, xhr] = event.detail;
+      showFlashAlert(data.error || 'Failed to add item to cart');
+    });
+  });
+  
+  function showFlashNotice(message) {
+    const flash = document.createElement('div');
+    flash.className = 'alert alert-success flash-message';
+    flash.innerHTML = message;
+    document.body.appendChild(flash);
+    
+    setTimeout(() => {
+      flash.remove();
+    }, 3000);
+  }
+  
+  function showFlashAlert(message) {
+    const flash = document.createElement('div');
+    flash.className = 'alert alert-danger flash-message';
+    flash.innerHTML = message;
+    document.body.appendChild(flash);
+    
+    setTimeout(() => {
+      flash.remove();
+    }, 3000);
+  }
+});
 </script>
 
 <style>
@@ -423,4 +469,23 @@
     background: rgba(0, 0, 0, 0.9);
     cursor: zoom-out;
   }
+
+  .flash-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  animation: slideIn 0.5s, fadeOut 0.5s 2.5s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
 </style>

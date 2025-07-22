@@ -22,11 +22,11 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
-            <li class="nav-item">
-              <%= link_to 'Products', products_path, class: 'nav-link' %>
-            </li>
             <% if user_signed_in? %>
               <% if current_user.buyer? %>
+                <li class="nav-item">
+                  <%= link_to 'Products', products_path, class: 'nav-link' %>
+                </li>
                 <li class="nav-item">
                   <%= link_to 'Cart', cart_path, class: 'nav-link' %>
                 </li>
