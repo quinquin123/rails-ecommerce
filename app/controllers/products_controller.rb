@@ -40,7 +40,7 @@ class ProductsController < ApplicationController
 
   def destroy
     authorize @product
-    @product.update(status: 'deleted')
+    @product.destroy 
     redirect_to products_path, notice: 'Product deleted successfully.'
   end
 

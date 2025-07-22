@@ -8,7 +8,8 @@ class User < ApplicationRecord
 
   has_one :cart, foreign_key: :buyer_id, dependent: :destroy
   has_many :products, foreign_key: :seller_id, dependent: :destroy
-  
+  has_many :orders, foreign_key: :buyer_id
+
   validate :custom_email_validation
   validates :role, presence: true
 

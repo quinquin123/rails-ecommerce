@@ -1,2 +1,51 @@
-<h1>Products#destroy</h1>
-<p>Find me in app/views/products/destroy.html.erb</p>
+<div class="container py-5">
+<div class="row justify-content-center">
+<div class="col-md-8">
+<div class="card shadow-sm border-danger">
+<div class="card-header bg-danger text-white">
+<h2 class="mb-0">
+<i class="fas fa-exclamation-triangle me-2"></i>
+
+            Confirm Deletion
+</h2>
+</div>
+<div class="card-body text-center">
+<h4 class="mb-4">Are you sure you want to delete this product?</h4>
+<div class="card mb-4">
+<div class="card-body">
+<% if @product.preview_url.present? %>
+<%= image_tag @product.preview_url, class: "img-fluid rounded mb-3", style: "max-height: 150px" %>
+<% end %>
+<h5><%= @product.title %></h5>
+<p class="text-muted"><%= @product.category&.name || 'No category' %></p>
+<h5><%= number_to_currency(@product.price) %></h5>
+</div>
+</div>
+<div class="d-flex justify-content-center gap-3">
+<%= button_to "Delete Permanently", product_path(@product), 
+
+                  method: :delete, 
+
+                  class: "btn btn-danger" %>
+<%= link_to "Cancel", product_path(@product), class: "btn btn-outline-secondary" %>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<style>
+
+  .card {
+
+    border-radius: 0.5rem;
+
+  }
+
+  .btn-danger {
+
+    min-width: 150px;
+
+  }
+</style>
+ 
