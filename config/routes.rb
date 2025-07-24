@@ -1,10 +1,15 @@
 Rails.application.routes.draw do
   devise_for :users, controllers: { passwords: 'users/passwords' }
+  mount ActiveStorage::Engine => '/attachments'
+  
   root "products#index"
 
   resources :products do
     collection do
       get :search
+    end
+    member do
+      get 'download'
     end
   end
   resource :cart, only: [:show] do

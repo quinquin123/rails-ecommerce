@@ -1,4 +1,5 @@
 class Product < ApplicationRecord
+  after_save :store_urls
   include PgSearch::Model
 
   pg_search_scope :search_by_title_and_description,
@@ -29,5 +30,15 @@ class Product < ApplicationRecord
 
   def preview 
     preview_image.variant(resize_to_limit: [800, 800]).processed
+  end
+
+  def store_urls
+    if preview_image.attached?
+      update_column(:preview_url, preview_image.url)
+    end
+
+    if downloadable_asset.attached?
+      update_column(:download_url, downloadable_asset.url)
+    end
   end
 end

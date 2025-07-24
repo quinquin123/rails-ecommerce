@@ -18,15 +18,16 @@ class ProductsController < ApplicationController
   def create
     @product = Product.new(product_params.merge(seller_id: current_user.id, status: 'active'))
     authorize @product
+
+    if params[:product][:preview_image].present?
+      @product.preview_image.attach(params[:product][:preview_image])
+    end
+
+    if params[:product][:downloadable_asset].present?
+      @product.downloadable_asset.attach(params[:product][:downloadable_asset])
+    end
+
     if @product.save
-      if params[:product][:preview_image].present?
-        @product.preview_image.attach(params[:product][:preview_image])
-      end
-
-      if params[:product][:downloadable_asset].present?
-        @product.downloadable_asset.attach(params[:product][:downloadable_asset])
-      end
-
       redirect_to @product, notice: 'Product created successfully.'
     else
       render :new, status: :unprocessable_entity
@@ -46,13 +47,16 @@ class ProductsController < ApplicationController
     if params[:product][:remove_downloadable_asset] == '1'
       @product.downloadable_asset.purge if @product.downloadable_asset.attached?
     end
-    if @product.update(product_params)
-      if params[:product][:preview_image].present?
-        @product.preview_image.attach(params[:product][:preview_image])
-      end
-      if params[:product][:downloadable_asset].present?
-        @product.downloadable_asset.attach(params[:product][:downloadable_asset])
-      end
+
+    if params[:product][:preview_image].present?
+      @product.preview_image.attach(params[:product][:preview_image])
+    end
+
+    if params[:product][:downloadable_asset].present?
+      @product.downloadable_asset.attach(params[:product][:downloadable_asset])
+    end
+
+    if @product.update(product_params.except(:preview_image, :downloadable_asset))
       redirect_to @product, notice: 'Product updated successfully.'
     else
       render :edit, status: :unprocessable_entity

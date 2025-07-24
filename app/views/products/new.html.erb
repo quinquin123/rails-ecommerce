@@ -31,13 +31,13 @@
               <% end %>
             </div>
             <div class="col-md-6 mb-3">
-              <%= form.label :category, class: "form-label fw-semibold" %>
+              <%= form.label :category_id, class: "form-label fw-semibold" %>
               <%= form.collection_select :category_id, Category.all, :id, :name,
                 { prompt: 'Select a category' },
                 { class: "form-select #{'is-invalid' if @product.errors[:category_id].any?}", required: true } %>
-              <% if @product.errors[:category].any? %>
+              <% if @product.errors[:category_id].any? %>
                 <div class="invalid-feedback">
-                  <%= @product.errors[:category].first %>
+                  <%= @product.errors[:category_id].first %>
                 </div>
               <% end %>
             </div>
@@ -55,16 +55,6 @@
                   </div>
                 <% end %>
               </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <%= form.label :quantity, class: "form-label fw-semibold" %>
-              <%= form.number_field :quantity, min: 0, class: "form-control #{'is-invalid' if @product.errors[:quantity].any?}", placeholder: "Available quantity", required: true %>
-              <% if @product.errors[:quantity].any? %>
-                <div class="invalid-feedback">
-                  <%= @product.errors[:quantity].first %>
-                </div>
-              <% end %>
             </div>
           </div>
 
@@ -101,8 +91,8 @@
           </div>
 
           <div class="mb-3">
-            <%= form.label :downloadable_asset, "Product Image", class: "form-label fw-semibold" %>
-            <%= form.file_field :downloadable_asset, class: "form-control #{'is-invalid' if @product.errors[:downloadable_asset].any?}", accept: "image/*" %>
+            <%= form.label :downloadable_asset, "Product File", class: "form-label fw-semibold" %>
+            <%= form.file_field :downloadable_asset, class: "form-control #{'is-invalid' if @product.errors[:downloadable_asset].any?}" %>
             <div class="form-text">
               <small class="text-muted">
                 <i class="fas fa-camera me-1"></i>
@@ -114,18 +104,6 @@
                 <%= @product.errors[:downloadable_asset].first %>
               </div>
             <% end %>
-          </div>
-
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <%= form.label :brand, class: "form-label fw-semibold" %>
-              <%= form.text_field :brand, class: "form-control #{'is-invalid' if @product.errors[:brand].any?}", placeholder: "Product brand" %>
-              <% if @product.errors[:brand].any? %>
-                <div class="invalid-feedback">
-                  <%= @product.errors[:brand].first %>
-                </div>
-              <% end %>
-            </div>
           </div>
 
           <hr class="my-4">

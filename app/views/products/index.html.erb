@@ -58,8 +58,10 @@
   <% @products.each do |product| %>
     <div class="product-card" data-product-id="<%= product.id %>" data-category="<%= product.category&.id || '' %>">
       <div class="product-image">
-        <% if product.preview_url.present? %>
-          <img src="<%= product.preview_url %>" alt="<%= product.title %>" loading="lazy">
+        <% if product.preview_image.attached? %>
+          <%= image_tag product.preview_image.variant(resize_to_limit: [400, 400]),
+             alt: product.title,
+             loading: "lazy" %>
         <% else %>
           <div class="placeholder-image">
             <i class="fas fa-image"></i>
@@ -479,6 +481,11 @@
     to { opacity: 0; }
   }
   
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
   @media (max-width: 768px) {
     .products-grid {
       grid-template-columns: 1fr;
@@ -636,13 +643,4 @@
     });
   });
 
-  // Add CSS animation for fadeIn
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  `;
-  document.head.appendChild(style);
 </script>
