@@ -3,8 +3,10 @@
     <!-- Product Image -->
     <div class="mb-4 col-lg-6">
       <div class="product-image-container">
-        <% if @product.preview_url.present? %>
-          <img src="<%= @product.preview_url %>" alt="<%= @product.title %>" class="product-main-image">
+        <% if @product.preview_image.attached? %>
+          <%= image_tag @product.preview_image.variant(resize_to_limit: [800, 800]),
+                    alt: @product.title,
+                    class: "product-main-image" %>
         <% else %>
           <div class="placeholder-image">
             <i class="fas fa-image"></i>
@@ -12,8 +14,18 @@
           </div>
         <% end %>
       </div>
+      
+      <!-- Downloadable asset section -->
+      <% if @product.downloadable_asset.attached? %>
+        <div class="download-section mt-4">
+          <h4>Downloadable File</h4>
+          <%= link_to @product.downloadable_asset.filename,
+                    rails_blob_path(@product.downloadable_asset, disposition: 'attachment'),
+                    class: 'btn btn-primary' %>
+        </div>
+      <% end %>
     </div>
-    
+
     <!-- Product Info -->
     <div class="col-lg-6">
       <div class="product-info">
@@ -59,8 +71,10 @@
               <i class="fas fa-cart-plus me-1"></i> Add to Cart
             <% end %>
             
-            <% if @product.download_url.present? %>
-              <%= link_to @product.download_url, target: '_blank', class: 'btn btn-secondary btn-lg' do %>
+            <% if @product.downloadable_asset.attached? %>
+              <%= link_to rails_blob_path(@product.downloadable_asset, disposition: 'preview'),
+                                      target: '_blank',
+                                      class: 'btn btn-secondary btn-lg' do %>
                 <i class="fas fa-download me-2"></i>Preview
               <% end %>
             <% end %>
@@ -357,6 +371,18 @@
       width: 100%;
       text-align: center;
     }
+    .download-section {
+      background: rgba(102, 126, 234, 0.05);
+      padding: 1.5rem;
+      border-radius: 12px;
+      border-left: 4px solid #667eea;
+      margin-top: 1.5rem;
+    }
+    .download-section h4 {
+      color: #1e293b;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
   }
 </style>
 
@@ -474,21 +500,21 @@
   }
 
   .flash-message {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-  animation: slideIn 0.5s, fadeOut 0.5s 2.5s;
-  animation-fill-mode: forwards;
-}
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    animation: slideIn 0.5s, fadeOut 0.5s 2.5s;
+    animation-fill-mode: forwards;
+  }
 
-@keyframes slideIn {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
 
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
 </style>

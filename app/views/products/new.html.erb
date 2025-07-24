@@ -85,17 +85,33 @@
           </div>
 
           <div class="mb-3">
-            <%= form.label :image, "Product Image", class: "form-label fw-semibold" %>
-            <%= form.file_field :image, class: "form-control #{'is-invalid' if @product.errors[:image].any?}", accept: "image/*" %>
+            <%= form.label :preview_image, "Product Image", class: "form-label fw-semibold" %>
+            <%= form.file_field :preview_image, class: "form-control #{'is-invalid' if @product.errors[:preview_image].any?}", accept: "image/*" %>
             <div class="form-text">
               <small class="text-muted">
                 <i class="fas fa-camera me-1"></i>
                 Upload a high-quality image of your product (JPG, PNG, or GIF format).
               </small>
             </div>
-            <% if @product.errors[:image].any? %>
+            <% if @product.errors[:preview_image].any? %>
               <div class="invalid-feedback">
-                <%= @product.errors[:image].first %>
+                <%= @product.errors[:preview_image].first %>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="mb-3">
+            <%= form.label :downloadable_asset, "Product Image", class: "form-label fw-semibold" %>
+            <%= form.file_field :downloadable_asset, class: "form-control #{'is-invalid' if @product.errors[:downloadable_asset].any?}", accept: "image/*" %>
+            <div class="form-text">
+              <small class="text-muted">
+                <i class="fas fa-camera me-1"></i>
+                Upload the product file (JPG, PNG, or GIF format).
+              </small>
+            </div>
+            <% if @product.errors[:downloadable_asset].any? %>
+              <div class="invalid-feedback">
+                <%= @product.errors[:downloadable_asset].first %>
               </div>
             <% end %>
           </div>
