@@ -16,18 +16,14 @@ class ProductsController < ApplicationController
   end
 
   def create
-    @product = Product.new(product_params.merge(seller_id: current_user.id, status: 'active'))
+    @product = Product.new(product_params.merge(
+      seller_id: current_user.id,
+      status: 'active'
+    ))
     authorize @product
 
-    if params[:product][:preview_image].present?
-      @product.preview_image.attach(params[:product][:preview_image])
-    end
-
-    if params[:product][:downloadable_asset].present?
-      @product.downloadable_asset.attach(params[:product][:downloadable_asset])
-    end
-
     if @product.save
+      process_media_attachments
       redirect_to @product, notice: 'Product created successfully.'
     else
       render :new, status: :unprocessable_entity
@@ -40,23 +36,8 @@ class ProductsController < ApplicationController
 
   def update
     authorize @product
-    if params[:product][:remove_preview_image] == '1'
-      @product.preview_image.purge if @product.preview_image.attached?
-    end
-
-    if params[:product][:remove_downloadable_asset] == '1'
-      @product.downloadable_asset.purge if @product.downloadable_asset.attached?
-    end
-
-    if params[:product][:preview_image].present?
-      @product.preview_image.attach(params[:product][:preview_image])
-    end
-
-    if params[:product][:downloadable_asset].present?
-      @product.downloadable_asset.attach(params[:product][:downloadable_asset])
-    end
-
-    if @product.update(product_params.except(:preview_image, :downloadable_asset))
+    if @product.update(product_params)
+      process_media_attachments
       redirect_to @product, notice: 'Product updated successfully.'
     else
       render :edit, status: :unprocessable_entity
@@ -106,8 +87,23 @@ class ProductsController < ApplicationController
     @product = Product.find(params[:id])
   end
 
+  def process_media_attachments
+    purge_media_if_requested
+    attach_new_media
+  end
+  def purge_media_if_requested
+    @product.preview_image.purge if params[:product][:remove_preview_image] == '1'
+    @product.downloadable_asset.purge if params[:product][:remove_downloadable_asset] == '1'
+    @product.video.purge if params[:product][:remove_video] == '1'
+  end
+  def attach_new_media
+    @product.preview_image.attach(params[:product][:preview_image]) if params[:product][:preview_image].present?
+    @product.downloadable_asset.attach(params[:product][:downloadable_asset]) if params[:product][:downloadable_asset].present?
+    @product.video.attach(params[:product][:video]) if params[:product][:video].present?
+  end
+
   def product_params
-    params.require(:product).permit(:title, :description, :price, :category_id, :preview_image, :downloadable_asset, :remove_preview_image, :remove_downloadable_asset, tags: [])  
+    params.require(:product).permit(:title, :description, :price, :category_id, :preview_image, :downloadable_asset, :video, :remove_preview_image, :remove_downloadable_asset,:remove_video, tags: [])  
   end
 
 end

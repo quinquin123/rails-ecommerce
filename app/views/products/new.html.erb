@@ -74,13 +74,30 @@
             <% end %>
           </div>
 
+          <!-- Video Upload Section -->
           <div class="mb-3">
-            <%= form.label :preview_image, "Product Image", class: "form-label fw-semibold" %>
+            <%= form.label :video, "Product Video", class: "form-label fw-semibold" %>
+            <%= form.file_field :video, class: "form-control #{'is-invalid' if @product.errors[:video].any?}", accept: "video/*" %>
+            <div class="form-text">
+              <small class="text-muted">
+                <i class="fas fa-video me-1"></i>
+                Upload a high-quality video of your product (MP4, AVI, MOV format). Thumbnail will be auto-generated.
+              </small>
+            </div>
+            <% if @product.errors[:video].any? %>
+              <div class="invalid-feedback">
+                <%= @product.errors[:video].first %>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="mb-3">
+            <%= form.label :preview_image, "Product Image/Thumbnail", class: "form-label fw-semibold" %>
             <%= form.file_field :preview_image, class: "form-control #{'is-invalid' if @product.errors[:preview_image].any?}", accept: "image/*" %>
             <div class="form-text">
               <small class="text-muted">
                 <i class="fas fa-camera me-1"></i>
-                Upload a high-quality image of your product (JPG, PNG, or GIF format).
+                Upload a custom thumbnail image (JPG, PNG, or GIF format) or leave empty to auto-generate from video.
               </small>
             </div>
             <% if @product.errors[:preview_image].any? %>
@@ -95,8 +112,8 @@
             <%= form.file_field :downloadable_asset, class: "form-control #{'is-invalid' if @product.errors[:downloadable_asset].any?}" %>
             <div class="form-text">
               <small class="text-muted">
-                <i class="fas fa-camera me-1"></i>
-                Upload the product file (JPG, PNG, or GIF format).
+                <i class="fas fa-file me-1"></i>
+                Upload the main product file that customers will download after purchase.
               </small>
             </div>
             <% if @product.errors[:downloadable_asset].any? %>
@@ -143,8 +160,8 @@
       <div class="card-body">
         <div class="row">
           <div class="col-md-4">
-            <div class="preview-image-placeholder bg-light border rounded d-flex align-items-center justify-content-center" style="height: 200px;">
-              <i class="fas fa-image fa-3x text-muted"></i>
+            <div class="preview-video-placeholder bg-light border rounded d-flex align-items-center justify-content-center" style="height: 200px;">
+              <i class="fas fa-video fa-3x text-muted"></i>
             </div>
           </div>
           <div class="col-md-8">
@@ -154,8 +171,7 @@
             <p class="preview-description text-muted">Product description will appear here...</p>
             <div class="preview-details">
               <small class="text-muted">
-                <strong>Brand:</strong> <span class="preview-brand">-</span> |
-                <strong>Available:</strong> <span class="preview-quantity">0</span> items
+                <strong>Media:</strong> <span class="preview-media">Video & Image</span>
               </small>
             </div>
           </div>

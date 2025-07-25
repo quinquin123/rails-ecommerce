@@ -1,5 +1,8 @@
+require 'sidekiq/web'
+
 Rails.application.routes.draw do
   devise_for :users, controllers: { passwords: 'users/passwords' }
+  mount Sidekiq::Web => '/sidekiq' 
   mount ActiveStorage::Engine => '/attachments'
   
   root "products#index"
