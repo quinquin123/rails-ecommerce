@@ -35,7 +35,6 @@ class OrdersController < ApplicationController
           @order.order_items.create!(
             product_id: item.product_id,
             price_at_purchase: item.product.price,
-            download_url: item.product.download_url
           )
         end
         payment = @order.payments.create!(status: 'success', amount: @order.total_amount)

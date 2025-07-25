@@ -44,4 +44,11 @@ class ProductPolicy < ApplicationPolicy
     user.admin?
   end
 
+  def download?
+    return true if record.price.zero?
+    return false unless user
+    user.orders.successful.joins(:order_items)
+        .where(order_items: { product_id: record.id }).exists?
+  end
+
 end

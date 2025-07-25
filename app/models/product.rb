@@ -41,4 +41,24 @@ class Product < ApplicationRecord
       update_column(:download_url, downloadable_asset.url)
     end
   end
+
+  def downloadable_by?(user)
+    return true if price.zero?
+    return false unless user.present?
+
+    user.orders.successful.joins(:order_items).where(order_items: { product_id: id }).exists?
+  end
+
+  def download_url
+    return nil unless downloadable_asset.attached?
+    if price.zero?
+      Rails.application.routes.url_helpers.url_for(downloadable_asset)
+    else
+      Rails.application.routes.url_helpers.rails_blob_url(
+        downloadable_asset,
+        disposition: :attachment,
+        expires_in: 1.hour
+      )
+    end
+  end
 end

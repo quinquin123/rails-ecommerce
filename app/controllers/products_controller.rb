@@ -82,22 +82,21 @@ class ProductsController < ApplicationController
   def download
     @product = Product.find(params[:id])
     authorize @product
-    if @product.downloadable_asset.attached?
-      if @product.price > 0
-        # Paid product 
-        if current_user.orders.joins(:order_items)
-                        .where(order_items: { product_id: @product.id })
-                        .where(status: 'success').exists?
-          redirect_to rails_blob_path(@product.downloadable_asset, disposition: 'attachment')
-        else
-          redirect_to @product, alert: 'You need to purchase this product before downloading'
-        end
+
+    unless @product.downloadable_asset.attached?
+      redirect_to @product, alert: 'No downloadable asset available' and return
+    end
+
+    if @product.downloadable_by?(current_user)
+      DownloadLog.create!(user: current_user, product: @product)
+
+      if @product.price.zero?
+        redirect_to @product.download_url, allow_other_host: true
       else
-        # Free product 
         redirect_to rails_blob_path(@product.downloadable_asset, disposition: 'attachment')
       end
     else
-      redirect_to @product, alert: 'No downloadable asset available'
+      redirect_to @product, alert: 'You need to purchase this product before downloading'
     end
   end
 

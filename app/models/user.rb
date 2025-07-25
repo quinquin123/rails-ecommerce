@@ -15,6 +15,13 @@ class User < ApplicationRecord
 
   after_initialize :set_default_role, if: :new_record?
 
+  def has_purchased?(product)
+    return false unless product.price > 0
+    orders.successful.joins(:order_items)
+          .where(order_items: { product_id: product.id })
+          .exists?
+  end
+
   private
 
   def set_default_role

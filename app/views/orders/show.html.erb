@@ -29,8 +29,8 @@
                     <td>
                       <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                          <% if item.product.preview_url.present? %>
-                            <%= image_tag item.product.preview_url, class: 'img-thumbnail', style: 'width: 60px; height: 60px; object-fit: cover;' %>
+                          <% if item.product.preview_image.attached? %>
+                            <%= image_tag item.product.preview_image.variant(resize_to_limit: [60, 60]), class: 'img-thumbnail', style: 'width: 60px; height: 60px; object-fit: cover;' %>
                           <% else %>
                             <div class="bg-light d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
                               <i class="fas fa-image text-muted"></i>
@@ -45,8 +45,8 @@
                     </td>
                     <td class="text-end align-middle"><%= number_to_currency(item.price_at_purchase) %></td>
                     <td class="text-end align-middle">
-                      <% if item.download_url.present? %>
-                        <%= link_to item.download_url, class: 'btn btn-sm btn-outline-primary', target: '_blank' do %>
+                      <% if item.product.downloadable_asset.attached? %>
+                        <%= link_to rails_blob_path(item.product.downloadable_asset, disposition: 'attachment'), class: 'btn btn-sm btn-outline-primary', data: { turbo_method: :post } do %>
                           <i class="fas fa-download me-1"></i> Download
                         <% end %>
                       <% else %>

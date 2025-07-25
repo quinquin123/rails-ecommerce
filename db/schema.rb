@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_22_033933) do
+ActiveRecord::Schema[7.1].define(version: 2025_07_25_025509) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -65,6 +65,17 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_22_033933) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_categories_on_name", unique: true
+  end
+
+  create_table "download_logs", force: :cascade do |t|
+    t.uuid "user_id"
+    t.uuid "product_id"
+    t.string "ip_address"
+    t.string "user_agent"
+    t.datetime "downloaded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_download_logs_on_product_id"
   end
 
   create_table "order_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -161,6 +172,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_22_033933) do
   add_foreign_key "cart_items", "carts"
   add_foreign_key "cart_items", "products"
   add_foreign_key "carts", "users", column: "buyer_id"
+  add_foreign_key "download_logs", "products"
+  add_foreign_key "download_logs", "users"
   add_foreign_key "order_items", "orders"
   add_foreign_key "order_items", "products"
   add_foreign_key "orders", "users", column: "buyer_id"

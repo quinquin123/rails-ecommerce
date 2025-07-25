@@ -19,6 +19,11 @@ Rails.application.routes.draw do
   resources :orders, only: [:new, :create, :index, :show] 
   resources :reviews, only: [:create]
   resources :product_imports, only: [:new, :create]
+  resources :orders_items do
+    member do
+      post :download
+    end
+  end
   resources :users, only: [:index, :show, :edit, :update] do
     member do
       patch :approve

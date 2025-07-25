@@ -18,9 +18,36 @@
       <% if @product.downloadable_asset.attached? %>
         <div class="download-section mt-4">
           <h4>Downloadable File</h4>
-          <%= link_to @product.downloadable_asset.filename,
-                    rails_blob_path(@product.downloadable_asset, disposition: 'attachment'),
-                    class: 'btn btn-primary' %>
+          <% if @product.price.zero? %>
+            <!-- Free product - direct download -->
+            <%= link_to @product.downloadable_asset.filename,
+                      download_product_path(@product),
+                      class: 'btn btn-primary',
+                      data: { turbo_method: :post } %>
+          <% else %>
+            <!-- Paid product - check purchase status -->
+            <% if user_signed_in? && current_user.has_purchased?(@product) %>
+              <%= link_to @product.downloadable_asset.filename,
+                        download_product_path(@product),
+                        class: 'btn btn-primary',
+                        data: { turbo_method: :post } %>
+            <% else %>
+              <%= button_to "Purchase to Download (#{number_to_currency(@product.price)})",
+                        add_item_cart_path(product_id: @product.id),
+                        method: :post,
+                        class: 'btn btn-warning',
+                        remote: true,
+                        form: { data: { turbo: false } } %>
+            <% end %>
+          <% end %>
+          <!-- File info -->
+          <div class="file-info mt-2">
+            <small class="text-muted">
+              <i class="fas fa-file-alt me-1"></i>
+              <%= number_to_human_size(@product.downloadable_asset.byte_size) %>
+                    • <%= @product.downloadable_asset.filename %>
+            </small>
+          </div>
         </div>
       <% end %>
     </div>
@@ -178,6 +205,24 @@
     font-size: 4rem;
     margin-bottom: 1rem;
     opacity: 0.5;
+  }
+  
+  .download-section {
+    background: rgba(102, 126, 234, 0.05);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
+  }
+  
+  .download-section h4 {
+    color: #1e293b;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .file-info {
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(102, 126, 234, 0.1);
   }
   
   .product-info {
@@ -343,6 +388,53 @@
     padding-top: 2rem;
     border-top: 1px solid rgba(102, 126, 234, 0.1);
   }
+
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    pointer-events: none;
+  }
+
+  @keyframes ripple {
+    to {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+  
+  .product-main-image.zoomed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: contain;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.9);
+    cursor: zoom-out;
+  }
+
+  .flash-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    animation: slideIn 0.5s, fadeOut 0.5s 2.5s;
+    animation-fill-mode: forwards;
+  }
+
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
   
   @media (max-width: 768px) {
     .product-title {
@@ -369,18 +461,6 @@
     .btn-lg {
       width: 100%;
       text-align: center;
-    }
-    .download-section {
-      background: rgba(102, 126, 234, 0.05);
-      padding: 1.5rem;
-      border-radius: 12px;
-      border-left: 4px solid #667eea;
-      margin-top: 1.5rem;
-    }
-    .download-section h4 {
-      color: #1e293b;
-      font-size: 1.1rem;
-      margin-bottom: 1rem;
     }
   }
 </style>
@@ -419,101 +499,52 @@
         }, 300);
       }, 5000);
     });
-  });
-  document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.add-to-cart').forEach(button => {
-    button.addEventListener('ajax:success', (event) => {
-      const [data, status, xhr] = event.detail;
-      // Hiển thị thông báo
-      showFlashNotice('Item added to cart successfully!');
+
+    // Handle add to cart functionality
+    document.querySelectorAll('.add-to-cart').forEach(button => {
+      button.addEventListener('ajax:success', (event) => {
+        const [data, status, xhr] = event.detail;
+        // Show notification
+        showFlashNotice('Item added to cart successfully!');
+        
+        // Animation when adding to cart
+        button.innerHTML = '<i class="fas fa-check me-1"></i> Added';
+        button.classList.remove('btn-secondary');
+        button.classList.add('btn-success');
+        
+        setTimeout(() => {
+          button.innerHTML = '<i class="fas fa-cart-plus me-1"></i> Add to Cart';
+          button.classList.remove('btn-success');
+          button.classList.add('btn-secondary');
+        }, 2000);
+      });
       
-      // Animation khi thêm vào giỏ hàng
-      button.innerHTML = '<i class="fas fa-check me-1"></i> Added';
-      button.classList.remove('btn-secondary');
-      button.classList.add('btn-success');
+      button.addEventListener('ajax:error', (event) => {
+        const [data, status, xhr] = event.detail;
+        showFlashAlert(data.error || 'Failed to add item to cart');
+      });
+    });
+    
+    function showFlashNotice(message) {
+      const flash = document.createElement('div');
+      flash.className = 'alert alert-success flash-message';
+      flash.innerHTML = message;
+      document.body.appendChild(flash);
       
       setTimeout(() => {
-        button.innerHTML = '<i class="fas fa-cart-plus me-1"></i> Add to Cart';
-        button.classList.remove('btn-success');
-        button.classList.add('btn-secondary');
-      }, 2000);
-    });
-    
-    button.addEventListener('ajax:error', (event) => {
-      const [data, status, xhr] = event.detail;
-      showFlashAlert(data.error || 'Failed to add item to cart');
-    });
-  });
-  
-  function showFlashNotice(message) {
-    const flash = document.createElement('div');
-    flash.className = 'alert alert-success flash-message';
-    flash.innerHTML = message;
-    document.body.appendChild(flash);
-    
-    setTimeout(() => {
-      flash.remove();
-    }, 3000);
-  }
-  
-  function showFlashAlert(message) {
-    const flash = document.createElement('div');
-    flash.className = 'alert alert-danger flash-message';
-    flash.innerHTML = message;
-    document.body.appendChild(flash);
-    
-    setTimeout(() => {
-      flash.remove();
-    }, 3000);
-  }
-});
-</script>
-
-<style>
-  .ripple {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
-    transform: scale(0);
-    animation: ripple 0.6s linear;
-    pointer-events: none;
-  }
-  
-  @keyframes ripple {
-    to {
-      transform: scale(4);
-      opacity: 0;
+        flash.remove();
+      }, 3000);
     }
-  }
-  
-  .product-main-image.zoomed {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    object-fit: contain;
-    z-index: 9999;
-    background: rgba(0, 0, 0, 0.9);
-    cursor: zoom-out;
-  }
-
-  .flash-message {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    animation: slideIn 0.5s, fadeOut 0.5s 2.5s;
-    animation-fill-mode: forwards;
-  }
-
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
-
-  @keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-  }
-</style>
+    
+    function showFlashAlert(message) {
+      const flash = document.createElement('div');
+      flash.className = 'alert alert-danger flash-message';
+      flash.innerHTML = message;
+      document.body.appendChild(flash);
+      
+      setTimeout(() => {
+        flash.remove();
+      }, 3000);
+    }
+  });
+</script>
