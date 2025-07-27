@@ -7,11 +7,20 @@ class User < ApplicationRecord
   enum status: { active: 'active', blocked: 'blocked', pending_approval: 'pending_approval', inactive: 'inactive' }
 
   has_one :cart, foreign_key: :buyer_id, dependent: :destroy
-  
+  has_many :products, foreign_key: :seller_id, dependent: :destroy
+  has_many :orders, foreign_key: :buyer_id
+
   validate :custom_email_validation
   validates :role, presence: true
 
   after_initialize :set_default_role, if: :new_record?
+
+  def has_purchased?(product)
+    return false unless product.price > 0
+    orders.successful.joins(:order_items)
+          .where(order_items: { product_id: product.id })
+          .exists?
+  end
 
   private
 

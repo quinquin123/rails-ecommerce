@@ -38,6 +38,15 @@ gem 'sassc-rails'
 
 gem 'letter_opener', group: :development
 
+gem 'aws-sdk-s3', '~> 1.119'
+
+gem 'aasm'
+gem 'sidekiq'
+gem 'redis'
+gem 'image_processing'
+gem 'vips'
+gem 'mini_magick'
+
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
 
@@ -50,6 +59,7 @@ gem 'letter_opener', group: :development
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data"
 
+gem 'dotenv-rails', groups: [:development, :test]
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false

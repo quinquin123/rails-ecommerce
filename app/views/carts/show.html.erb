@@ -21,8 +21,8 @@
             <tr class="cart-item" id="cart-item-<%= item.id %>">
               <td>
                 <div class="d-flex align-items-center">
-                  <% if item.product.preview_url.present? %>
-                    <%= image_tag item.product.preview_url, class: 'cart-item-image me-3', alt: item.product.title %>
+                  <% if item.product.preview_image.attached? %>
+                    <%= image_tag item.product.preview_image.variant(resize_to_limit: [80, 80]), class: 'cart-item-image me-3', alt: item.product.title %>
                   <% else %>
                     <div class="cart-item-image placeholder me-3">
                       <i class="fas fa-image"></i>
@@ -171,11 +171,31 @@
     }
     
     function showFlashNotice(message) {
-      // Tương tự như hàm đã định nghĩa trước đó
+      const oldFlash = document.querySelector('.flash-message');
+      if (oldFlash) oldFlash.remove();
+      
+      const flash = document.createElement('div');
+      flash.className = 'alert alert-success flash-message';
+      flash.innerHTML = message;
+      document.body.appendChild(flash);
+      
+      setTimeout(() => {
+        flash.remove();
+      }, 3000);
     }
     
     function showFlashAlert(message) {
-      // Tương tự như hàm đã định nghĩa trước đó
+      const oldFlash = document.querySelector('.flash-message');
+      if (oldFlash) oldFlash.remove();
+      
+      const flash = document.createElement('div');
+      flash.className = 'alert alert-danger flash-message';
+      flash.innerHTML = message;
+      document.body.appendChild(flash);
+      
+      setTimeout(() => {
+        flash.remove();
+      }, 3000);
     }
   });
 </script>

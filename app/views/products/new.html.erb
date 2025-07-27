@@ -1,8 +1,8 @@
 <div class="row justify-content-center">
   <div class="col-lg-8 col-md-10">
-    <div class="card shadow-sm">
-      <div class="card-header bg-primary text-white">
-        <h3 class="card-title mb-0">
+    <div class="shadow-sm card">
+      <div class="text-white card-header bg-primary">
+        <h3 class="mb-0 card-title">
           <i class="fas fa-plus-circle me-2"></i>
           Add New Product
         </h3>
@@ -21,41 +21,30 @@
           <% end %>
 
           <div class="row">
-            <div class="col-md-6 mb-3">
-              <%= form.label :name, class: "form-label fw-semibold" %>
-              <%= form.text_field :name, class: "form-control #{'is-invalid' if @product.errors[:name].any?}", placeholder: "Enter product name", required: true %>
-              <% if @product.errors[:name].any? %>
+            <div class="mb-3 col-md-6">
+              <%= form.label :title, class: "form-label fw-semibold" %>
+              <%= form.text_field :title, class: "form-control #{'is-invalid' if @product.errors[:title].any?}", placeholder: "Enter product title", required: true %>
+              <% if @product.errors[:title].any? %>
                 <div class="invalid-feedback">
-                  <%= @product.errors[:name].first %>
+                  <%= @product.errors[:title].first %>
                 </div>
               <% end %>
             </div>
-
-            <div class="col-md-6 mb-3">
-              <%= form.label :category, class: "form-label fw-semibold" %>
-              <%= form.select :category, 
-                  options_for_select([
-                    ['Electronics', 'electronics'],
-                    ['Clothing', 'clothing'],
-                    ['Books', 'books'],
-                    ['Home & Garden', 'home_garden'],
-                    ['Sports', 'sports'],
-                    ['Beauty', 'beauty'],
-                    ['Toys', 'toys'],
-                    ['Other', 'other']
-                  ], @product.category), 
-                  { prompt: 'Select a category' }, 
-                  { class: "form-select #{'is-invalid' if @product.errors[:category].any?}", required: true } %>
-              <% if @product.errors[:category].any? %>
+            <div class="mb-3 col-md-6">
+              <%= form.label :category_id, class: "form-label fw-semibold" %>
+              <%= form.collection_select :category_id, Category.all, :id, :name,
+                { prompt: 'Select a category' },
+                { class: "form-select #{'is-invalid' if @product.errors[:category_id].any?}", required: true } %>
+              <% if @product.errors[:category_id].any? %>
                 <div class="invalid-feedback">
-                  <%= @product.errors[:category].first %>
+                  <%= @product.errors[:category_id].first %>
                 </div>
               <% end %>
             </div>
           </div>
 
           <div class="row">
-            <div class="col-md-6 mb-3">
+            <div class="mb-3 col-md-6">
               <%= form.label :price, class: "form-label fw-semibold" %>
               <div class="input-group">
                 <span class="input-group-text">$</span>
@@ -66,16 +55,6 @@
                   </div>
                 <% end %>
               </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <%= form.label :quantity, class: "form-label fw-semibold" %>
-              <%= form.number_field :quantity, min: 0, class: "form-control #{'is-invalid' if @product.errors[:quantity].any?}", placeholder: "Available quantity", required: true %>
-              <% if @product.errors[:quantity].any? %>
-                <div class="invalid-feedback">
-                  <%= @product.errors[:quantity].first %>
-                </div>
-              <% end %>
             </div>
           </div>
 
@@ -95,51 +74,87 @@
             <% end %>
           </div>
 
+          <!-- Media Type Selection -->
           <div class="mb-3">
-            <%= form.label :image, "Product Image", class: "form-label fw-semibold" %>
-            <%= form.file_field :image, class: "form-control #{'is-invalid' if @product.errors[:image].any?}", accept: "image/*" %>
+            <label class="form-label fw-semibold">Media Type</label>
+            <div class="form-check">
+              <%= form.radio_button :media_type, :image, class: "form-check-input", checked: true %>
+              <%= form.label :media_type_image, "Image", class: "form-check-label" %>
+            </div>
+            <div class="form-check">
+              <%= form.radio_button :media_type, :video, class: "form-check-input" %>
+              <%= form.label :media_type_video, "Video", class: "form-check-label" %>
+            </div>
+          </div>
+
+          <!-- Image Upload Section -->
+          <div id="image-upload-section" class="mb-3">
+            <%= form.label :preview_image, "Product Image", class: "form-label fw-semibold" %>
+            <%= form.file_field :preview_image, class: "form-control #{'is-invalid' if @product.errors[:preview_image].any?}", accept: "image/*" %>
             <div class="form-text">
               <small class="text-muted">
                 <i class="fas fa-camera me-1"></i>
-                Upload a high-quality image of your product (JPG, PNG, or GIF format).
+                Upload a high-quality image (JPG, PNG, or GIF format, max 10MB).
               </small>
             </div>
-            <% if @product.errors[:image].any? %>
+            <% if @product.errors[:preview_image].any? %>
               <div class="invalid-feedback">
-                <%= @product.errors[:image].first %>
+                <%= @product.errors[:preview_image].first %>
               </div>
             <% end %>
           </div>
 
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <%= form.label :brand, class: "form-label fw-semibold" %>
-              <%= form.text_field :brand, class: "form-control #{'is-invalid' if @product.errors[:brand].any?}", placeholder: "Product brand" %>
-              <% if @product.errors[:brand].any? %>
-                <div class="invalid-feedback">
-                  <%= @product.errors[:brand].first %>
-                </div>
-              <% end %>
+          <!-- Video Upload Section -->
+          <div id="video-upload-section" class="mb-3" style="display: none;">
+            <%= form.label :video, "Product Video", class: "form-label fw-semibold" %>
+            <%= form.file_field :video, class: "form-control #{'is-invalid' if @product.errors[:video].any?}", accept: "video/mp4,video/quicktime,video/x-msvideo" %>
+            <div class="form-text">
+              <small class="text-muted">
+                <i class="fas fa-video me-1"></i>
+                Upload a video file (MP4, MOV or AVI format, max 100MB). A thumbnail will be automatically generated.
+              </small>
             </div>
+            <% if @product.errors[:video].any? %>
+              <div class="invalid-feedback">
+                <%= @product.errors[:video].first %>
+              </div>
+            <% end %>
+          </div>
 
-            <div class="col-md-6">
-              <%= form.label :condition, class: "form-label fw-semibold" %>
-              <%= form.select :condition, 
-                  options_for_select([
-                    ['New', 'new'],
-                    ['Like New', 'like_new'],
-                    ['Good', 'good'],
-                    ['Fair', 'fair'],
-                    ['Poor', 'poor']
-                  ], @product.condition), 
-                  { prompt: 'Select condition' }, 
-                  { class: "form-select #{'is-invalid' if @product.errors[:condition].any?}" } %>
-              <% if @product.errors[:condition].any? %>
-                <div class="invalid-feedback">
-                  <%= @product.errors[:condition].first %>
-                </div>
-              <% end %>
+          <!-- Downloadable Asset -->
+          <div class="mb-3">
+            <%= form.label :downloadable_asset, "Product File", class: "form-label fw-semibold" %>
+            <%= form.file_field :downloadable_asset, class: "form-control #{'is-invalid' if @product.errors[:downloadable_asset].any?}" %>
+            <div class="form-text">
+              <small class="text-muted">
+                <i class="fas fa-file-archive me-1"></i>
+                Upload the digital asset file that buyers will download (ZIP, PDF, PSD, etc., max 500MB).
+              </small>
             </div>
+            <% if @product.errors[:downloadable_asset].any? %>
+              <div class="invalid-feedback">
+                <%= @product.errors[:downloadable_asset].first %>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="mb-3">
+            <%= form.label :tags, "Product Tags", class: "form-label fw-semibold" %>
+            <%= form.text_field :tags, 
+                value: @product.tags.join(', '),
+                class: "form-control #{'is-invalid' if @product.errors[:tags].any?}",
+                placeholder: "Enter tags separated by commas" %>
+            <div class="form-text">
+              <small class="text-muted">
+                <i class="fas fa-tags me-1"></i>
+                Separate tags with commas (e.g., design, template, creative)
+              </small>
+            </div>
+            <% if @product.errors[:tags].any? %>
+              <div class="invalid-feedback">
+                <%= @product.errors[:tags].first %>
+              </div>
+            <% end %>
           </div>
 
           <hr class="my-4">
@@ -152,12 +167,7 @@
               <% end %>
             </div>
 
-            <div class="d-flex gap-2">
-              <%= form.button type: "submit", name: "draft", class: "btn btn-outline-primary" do %>
-                <i class="fas fa-save me-2"></i>
-                Save as Draft
-              <% end %>
-              
+            <div class="gap-2 d-flex">              
               <%= form.submit "Create Product", class: "btn btn-primary" do %>
                 <i class="fas fa-plus me-2"></i>
                 Create Product
@@ -169,7 +179,7 @@
     </div>
 
     <!-- Preview Section -->
-    <div class="card shadow-sm mt-4" style="display: none;" id="product-preview">
+    <div class="mt-4 shadow-sm card" id="product-preview">
       <div class="card-header">
         <h5 class="mb-0">
           <i class="fas fa-eye me-2"></i>
@@ -179,20 +189,19 @@
       <div class="card-body">
         <div class="row">
           <div class="col-md-4">
-            <div class="preview-image-placeholder bg-light border rounded d-flex align-items-center justify-content-center" style="height: 200px;">
+            <div class="border rounded preview-image-placeholder bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
               <i class="fas fa-image fa-3x text-muted"></i>
             </div>
           </div>
           <div class="col-md-8">
             <h4 class="preview-name text-muted">Product Name</h4>
-            <p class="preview-category"><span class="badge bg-secondary">Category</span></p>
-            <h3 class="preview-price text-primary">$0.00</h3>
+            <p><span class="badge bg-secondary preview-category">Category</span></p>
+            <h3 class="text-primary preview-price">$0.00</h3>
             <p class="preview-description text-muted">Product description will appear here...</p>
             <div class="preview-details">
               <small class="text-muted">
-                <strong>Brand:</strong> <span class="preview-brand">-</span> |
-                <strong>Condition:</strong> <span class="preview-condition">-</span> |
-                <strong>Available:</strong> <span class="preview-quantity">0</span> items
+                <i class="fas fa-exclamation-circle me-1"></i>
+                No downloadable file attached
               </small>
             </div>
           </div>
@@ -232,46 +241,123 @@
   .preview-image-placeholder {
     border: 2px dashed #dee2e6 !important;
   }
+  
+  .video-preview-container {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+  }
+  
+  .video-preview-container video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 </style>
 
 <script>
-  // Form validation and preview functionality
   document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('.needs-validation');
     const previewSection = document.getElementById('product-preview');
     
-    // Real-time preview updates
-    const nameInput = document.getElementById('product_name');
-    const categorySelect = document.getElementById('product_category');
-    const priceInput = document.getElementById('product_price');
-    const descriptionInput = document.getElementById('product_description');
-    const brandInput = document.getElementById('product_brand');
-    const conditionSelect = document.getElementById('product_condition');
-    const quantityInput = document.getElementById('product_quantity');
+    // Toggle between image and video upload sections
+    const imageSection = document.getElementById('image-upload-section');
+    const videoSection = document.getElementById('video-upload-section');
+    const mediaTypeRadios = document.querySelectorAll('input[name="product[media_type]"]');
     
-    function updatePreview() {
-      if (nameInput?.value || categorySelect?.value || priceInput?.value) {
-        previewSection.style.display = 'block';
-        
-        document.querySelector('.preview-name').textContent = nameInput?.value || 'Product Name';
-        document.querySelector('.preview-category').innerHTML = categorySelect?.value ? 
-          `<span class="badge bg-secondary">${categorySelect.options[categorySelect.selectedIndex].text}</span>` : 
-          '<span class="badge bg-secondary">Category</span>';
-        document.querySelector('.preview-price').textContent = priceInput?.value ? `$${priceInput.value}` : '$0.00';
-        document.querySelector('.preview-description').textContent = descriptionInput?.value || 'Product description will appear here...';
-        document.querySelector('.preview-brand').textContent = brandInput?.value || '-';
-        document.querySelector('.preview-condition').textContent = conditionSelect?.value ? 
-          conditionSelect.options[conditionSelect.selectedIndex].text : '-';
-        document.querySelector('.preview-quantity').textContent = quantityInput?.value || '0';
+    mediaTypeRadios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        if (this.value === 'image') {
+          imageSection.style.display = 'block';
+          videoSection.style.display = 'none';
+          document.querySelector('.preview-image-placeholder i').className = 'fas fa-image fa-3x text-muted';
+        } else {
+          imageSection.style.display = 'none';
+          videoSection.style.display = 'block';
+          document.querySelector('.preview-image-placeholder i').className = 'fas fa-video fa-3x text-muted';
+        }
+      });
+    });
+    
+    // File size validation
+    const validateFileSize = (fileInput, maxSizeMB) => {
+      if (fileInput.files.length > 0) {
+        const fileSize = fileInput.files[0].size / 1024 / 1024; // in MB
+        if (fileSize > maxSizeMB) {
+          alert(`File size exceeds maximum allowed size of ${maxSizeMB}MB`);
+          fileInput.value = ''; // clear the file input
+          return false;
+        }
       }
-    }
+      return true;
+    };
+    
+    // Add file size validation to file inputs
+    document.getElementById('product_preview_image')?.addEventListener('change', function() {
+      validateFileSize(this, 10); // 10MB max for images
+      if (this.files.length > 0) {
+        const preview = document.querySelector('.preview-image-placeholder');
+        preview.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(this.files[0]);
+        img.className = 'img-fluid rounded';
+        img.style.maxHeight = '200px';
+        preview.appendChild(img);
+      }
+    });
+    
+    document.getElementById('product_video')?.addEventListener('change', function() {
+      validateFileSize(this, 100); // 100MB max for videos
+    });
+    
+    document.getElementById('product_downloadable_asset')?.addEventListener('change', function() {
+      validateFileSize(this, 500); // 500MB max for downloadable assets
+      if (this.files.length > 0) {
+        document.querySelector('.preview-details').innerHTML = `
+          <small class="text-muted">
+            <i class="fas fa-file-download me-1"></i>
+            ${this.files[0].name} (${(this.files[0].size / 1024 / 1024).toFixed(2)}MB)
+          </small>
+        `;
+      }
+    });
+    
+    // Real-time preview updates
+    const updatePreview = () => {
+      const nameInput = document.getElementById('product_title');
+      const categorySelect = document.getElementById('product_category_id');
+      const priceInput = document.getElementById('product_price');
+      const descriptionInput = document.getElementById('product_description');
+      
+      if (nameInput?.value) {
+        document.querySelector('.preview-name').textContent = nameInput.value;
+        document.querySelector('.preview-name').classList.remove('text-muted');
+      }
+      
+      if (categorySelect?.value) {
+        const categoryName = categorySelect.options[categorySelect.selectedIndex]?.text || 'No category';
+        document.querySelector('.preview-category').textContent = categoryName;
+      }
+      
+      if (priceInput?.value) {
+        document.querySelector('.preview-price').textContent = '$' + priceInput.value;
+      }
+      
+      if (descriptionInput?.value) {
+        document.querySelector('.preview-description').textContent = descriptionInput.value;
+        document.querySelector('.preview-description').classList.remove('text-muted');
+      }
+    };
     
     // Add event listeners for preview updates
-    [nameInput, categorySelect, priceInput, descriptionInput, brandInput, conditionSelect, quantityInput].forEach(input => {
-      if (input) {
-        input.addEventListener('input', updatePreview);
-        input.addEventListener('change', updatePreview);
-      }
+    ['input', 'change'].forEach(eventType => {
+      document.querySelectorAll('#product_title, #product_category_id, #product_price, #product_description').forEach(input => {
+        input.addEventListener(eventType, updatePreview);
+      });
     });
     
     // Form submission validation
