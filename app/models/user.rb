@@ -4,7 +4,7 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
   enum role: { buyer: 'buyer', seller: 'seller', admin: 'admin' }
-  enum status: { active: 'active', blocked: 'blocked', pending_approval: 'pending_approval', inactive: 'inactive' }
+  enum status: { active: "active", blocked: "blocked", pending_approval: "pending_approval", inactive: "inactive" }
 
   has_one :cart, foreign_key: :buyer_id, dependent: :destroy
   has_many :products, foreign_key: :seller_id, dependent: :destroy

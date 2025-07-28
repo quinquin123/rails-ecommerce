@@ -9,6 +9,13 @@ require 'rspec/rails'
 require 'devise'
 require 'factory_bot_rails'
 require 'pundit/rspec'
+require 'simplecov'
+
+include ActionDispatch::TestProcess::FixtureFile
+
+SimpleCov.start 'rails' do
+  add_filter '/spec/'
+end
 
 begin
   ActiveRecord::Migration.maintain_test_schema!
@@ -28,6 +35,17 @@ RSpec.configure do |config|
       with.library :rails
     end
   end
+
+  config.before(:suite) do
+    # Set up Active Storage directory
+    FileUtils.mkdir_p(Rails.root.join('tmp', 'storage'))
+  end
+
+  config.after(:suite) do
+    # Clean up test files
+    FileUtils.rm_rf(Rails.root.join('tmp', 'storage'))
+  end
+
   config.render_views = false
 
   config.use_transactional_fixtures = true

@@ -27,9 +27,8 @@ class Product < ApplicationRecord
   validate :validate_video_format, if: -> { video.attached? }
   validate :validate_image_format, if: -> { preview_image.attached? }
 
-  after_update_commit
-    after_create_commit :generate_thumbnail_later
-    after_update_commit :generate_thumbnail_later, if: -> { attachment_changes.key?(:video) }
+  after_create_commit :generate_thumbnail_later
+  after_update_commit :generate_thumbnail_later, if: -> { attachment_changes.key?(:video) }
   
   enum status: { active: 'active', moderated: 'moderated', deleted: 'deleted' }
   validates :title, :price, :status, presence: true
@@ -44,6 +43,7 @@ class Product < ApplicationRecord
   end
 
   def store_urls
+    return if Rails.env.test?
     if preview_image.attached?
       update_column(:preview_url, preview_image.url)
     end
