@@ -9,6 +9,35 @@
           <i class="fas fa-arrow-left me-1"></i> Back to Orders
         <% end %>
       </div>
+      
+      <!-- Status Alert Messages -->
+      <% if @order.processing? %>
+        <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+          <div class="spinner-border spinner-border-sm me-2" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div>
+            Your payment is being processed. This page will refresh automatically.
+          </div>
+        </div>
+        <script>
+          // Auto refresh for processing orders
+          setTimeout(function() {
+            window.location.reload();
+          }, 5000);
+        </script>
+      <% elsif @order.success? %>
+        <div class="alert mb-4" role="alert">
+          <i class="fas fa-check-circle me-2"></i>
+          Payment successful! Your order is complete and ready for download.
+        </div>
+      <% elsif @order.failed? %>
+        <div class="alert alert-danger mb-4" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          Payment failed. Please try again or contact support.
+        </div>
+      <% end %>
+      
       <div class="card shadow-sm mb-4">
         <div class="card-header bg-light">
           <h5 class="mb-0">Order Summary</h5>
@@ -24,7 +53,7 @@
                 </tr>
               </thead>
               <tbody>
-                <% @order.order_items.each do |item| %>
+                <% @order_items.each do |item| %>
                   <tr>
                     <td>
                       <div class="d-flex align-items-center">
@@ -45,12 +74,16 @@
                     </td>
                     <td class="text-end align-middle"><%= number_to_currency(item.price_at_purchase) %></td>
                     <td class="text-end align-middle">
-                      <% if item.product.downloadable_asset.attached? %>
-                        <%= link_to rails_blob_path(item.product.downloadable_asset, disposition: 'attachment'), class: 'btn btn-sm btn-outline-primary', data: { turbo_method: :post } do %>
+                      <% if @order.downloadable? && item.product.downloadable_asset.attached? %>
+                        <%= link_to rails_blob_path(item.product.downloadable_asset, disposition: 'attachment'), class: 'btn btn-sm btn-success', data: { turbo_method: :post } do %>
                           <i class="fas fa-download me-1"></i> Download
                         <% end %>
+                      <% elsif @order.success? %>
+                        <span class="text-muted">No file</span>
                       <% else %>
-                        <span class="text-muted">N/A</span>
+                        <span class="text-muted badge bg-secondary">
+                          <%= @order.aasm_state.humanize %>
+                        </span>
                       <% end %>
                     </td>
                   </tr>
@@ -67,6 +100,7 @@
         </div>
       </div>
     </div>
+    
     <div class="col-lg-4">
       <div class="card shadow-sm">
         <div class="card-header bg-light">
@@ -76,35 +110,105 @@
           <dl class="row mb-0">
             <dt class="col-sm-5">Order ID:</dt>
             <dd class="col-sm-7"><code><%= @order.id %></code></dd>
+            
             <dt class="col-sm-5">Order Date:</dt>
             <dd class="col-sm-7"><%= @order.created_at.strftime('%b %d, %Y %H:%M') %></dd>
+            
             <dt class="col-sm-5">Status:</dt>
             <dd class="col-sm-7">
-              <span class="badge <%= status_badge_class(@order.status) %>">
-                <%= @order.status.humanize %>
+              <span class="badge <%= status_badge_class(@order.aasm_state) %>">
+                <%= @order.aasm_state.humanize %>
               </span>
             </dd>
+            
             <dt class="col-sm-5">Items:</dt>
             <dd class="col-sm-7"><%= @order.order_items.count %></dd>
+            
             <% if @order.payments.any? %>
               <dt class="col-sm-5">Payment:</dt>
               <dd class="col-sm-7">
-                <span class="badge <%= @order.payments.last.status == 'success' ? 'bg-success' : 'bg-danger' %>">
-                  <%= @order.payments.last.status.humanize %>
+                <% latest_payment = @order.payments.order(:created_at).last %>
+                <span class="badge <%= latest_payment.status == 'success' ? 'bg-success' : latest_payment.status == 'processing' ? 'bg-warning' : 'bg-danger' %>">
+                  <%= latest_payment.status.humanize %>
                 </span>
               </dd>
+              
+              <% if latest_payment.processed_at %>
+                <dt class="col-sm-5">Processed:</dt>
+                <dd class="col-sm-7"><%= latest_payment.processed_at.strftime('%b %d, %Y %H:%M') %></dd>
+              <% end %>
+            <% end %>
+            
+            <% if @order.payment_method.present? %>
+              <dt class="col-sm-5">Method:</dt>
+              <dd class="col-sm-7"><%= @order.payment_method.humanize %></dd>
             <% end %>
           </dl>
         </div>
       </div>
-      <% if @order.status == 'failed' %>
+      
+      <!-- Action Buttons based on state -->
+      <% if @order.failed? && policy(@order).retry_payment? %>
         <div class="card shadow-sm border-danger mt-4">
           <div class="card-body text-center">
             <i class="fas fa-exclamation-triangle text-danger mb-3" style="font-size: 2rem;"></i>
             <h5 class="text-danger">Payment Failed</h5>
-            <p class="text-muted">Your payment was not successful. Please try again.</p>
-            <%= link_to cart_path, class: 'btn btn-danger' do %>
-              <i class="fas fa-shopping-cart me-1"></i> Back to Cart
+            <% if @order.payments.last&.failure_reason %>
+              <p class="text-muted small mb-3">
+                Reason: <%= @order.payments.last.failure_reason %>
+              </p>
+            <% end %>
+            <p class="text-muted">Would you like to try again?</p>
+            
+            <div class="d-grid gap-2">
+              <%= link_to retry_payment_order_path(@order), method: :patch, class: 'btn btn-primary' do %>
+                <i class="fas fa-redo me-1"></i> Retry Payment
+              <% end %>
+              
+              <%= link_to cart_path, class: 'btn btn-outline-secondary' do %>
+                <i class="fas fa-shopping-cart me-1"></i> Back to Cart
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% elsif @order.success? %>
+        <div class="card shadow-sm border-success mt-4">
+          <div class="card-body text-center">
+            <i class="fas fa-check-circle text-success mb-3" style="font-size: 2rem;"></i>
+            <h5 class="text-success">Order Complete!</h5>
+            <p class="text-muted">Thank you for your purchase. You can now download your items.</p>
+            
+            <% if @order.order_items.any? { |item| item.download_expires_at } %>
+              <small class="text-muted">
+                Download links expire on: 
+                <%= @order.order_items.maximum(:download_expires_at)&.strftime('%b %d, %Y') %>
+              </small>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+      
+      <!-- Payment History -->
+      <% if @order.payments.count > 1 %>
+        <div class="card shadow-sm mt-4">
+          <div class="card-header bg-light">
+            <h6 class="mb-0">Payment History</h6>
+          </div>
+          <div class="card-body">
+            <% @order.payments.order(:created_at).each do |payment| %>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                  <span class="badge <%= payment.status == 'success' ? 'bg-success' : payment.status == 'processing' ? 'bg-warning' : 'bg-danger' %>">
+                    <%= payment.status.humanize %>
+                  </span>
+                  <small class="text-muted ms-2">
+                    <%= payment.created_at.strftime('%m/%d %H:%M') %>
+                  </small>
+                </div>
+                <span class="text-muted">
+                  <%= number_to_currency(payment.amount) %>
+                </span>
+              </div>
             <% end %>
           </div>
         </div>

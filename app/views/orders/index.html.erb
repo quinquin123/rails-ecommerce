@@ -1,70 +1,184 @@
+<!-- app/views/orders/index.html.erb -->
 <div class="container py-5">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="mb-0">
-                    <i class="fas fa-receipt me-2"></i>My Orders
-                </h1>
-                <%= link_to products_path, class: 'btn btn-outline-primary' do %>
-                    <i class="fas fa-arrow-left me-1"></i> Continue Shopping
-                <% end %>
-            </div>
-            <% if @orders.any? %>
-                <div class="card shadow-sm">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Order #</th>
-                                    <th>Date</th>
-                                    <th class="text-end">Items</th>
-                                    <th class="text-end">Total</th>
-                                    <th>Status</th>
-                                    <th class="text-end">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% @orders.each do |order| %>
-                                    <tr>
-                                        <td><%= order.id.to_s.first(8) %>...</td>
-                                        <td><%= order.created_at.strftime('%b %d, %Y') %></td>
-                                        <td class="text-end"><%= order.order_items.count %></td>
-                                        <td class="text-end"><%= number_to_currency(order.total_amount) %></td>
-                                        <td>
-                                            <span class="badge <%= status_badge_class(order.status) %>">
-                                                <%= order.status.humanize %>
-                                            </span>
-                                        </td>
-                                        <td class="text-end">
-                                            <%= link_to order_path(order), class: 'btn btn-sm btn-outline-primary' do %>
-                                                <i class="fas fa-eye me-1"></i> View
-                                            <% end %>
-                                        </td>
-                                    </tr>
-                                <% end %>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            <% else %>
-                <div class="card shadow-sm text-center py-5">
-                    <div class="card-body">
-                        <i class="fas fa-box-open fa-4x text-muted mb-4"></i>
-                        <h3 class="mb-3">No Orders Found</h3>
-                        <p class="text-muted mb-4">You haven't placed any orders yet.</p>
-                        <%= link_to products_path, class: 'btn btn-primary' do %>
-                            <i class="fas fa-shopping-bag me-1"></i> Start Shopping
-                        <% end %>
-                    </div>
-                </div>
-            <% end %>
-        </div>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">
+      <i class="fas fa-list-alt me-2"></i>My Orders
+    </h1>
+    
+    <!-- Status Filter Tabs -->
+    <div class="btn-group" role="group">
+      <%= link_to orders_path, 
+                  class: "btn #{'btn-primary' if params[:status].blank?} #{'btn-outline-primary' unless params[:status].blank?}" do %>
+        All (<%= @orders.count %>)
+      <% end %>
+      
+      <% %w[pending processing success failed].each do |status| %>
+        <% count = policy_scope(Order).where(aasm_state: status).count %>
+        <% if count > 0 %>
+          <%= link_to orders_path(status: status), 
+                      class: "btn #{'btn-primary' if params[:status] == status} #{'btn-outline-primary' unless params[:status] == status}" do %>
+            <%= status.humanize %> (<%= count %>)
+          <% end %>
+        <% end %>
+      <% end %>
     </div>
+  </div>
+  
+  <% if @orders.any? %>
+    <div class="row">
+      <% @orders.each do |order| %>
+        <div class="col-md-6 col-lg-4 mb-4">
+          <div class="card shadow-sm h-100 <%= 'border-success' if order.success? %>">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <small class="text-muted">
+                Order #<%= order.id.to_s.first(8) %>...
+              </small>
+              
+              <span class="badge <%= status_badge_class(order.aasm_state) %>">
+                <i class="<%= order_status_icon(order.aasm_state) %> me-1"></i>
+                <%= order.aasm_state.humanize %>
+              </span>
+            </div>
+            
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <h6 class="card-title mb-1">
+                    <%= pluralize(order.order_items.count, 'item') %>
+                  </h6>
+                  <p class="card-text text-muted small mb-0">
+                    <%= order.created_at.strftime('%b %d, %Y at %I:%M %p') %>
+                  </p>
+                </div>
+                <div class="text-end">
+                  <h5 class="mb-0 text-primary">
+                    <%= number_to_currency(order.total_amount) %>
+                  </h5>
+                </div>
+              </div>
+              
+              <!-- Order Items Preview -->
+              <div class="mb-3">
+                <% order.order_items.limit(2).each do |item| %>
+                  <div class="d-flex align-items-center mb-2">
+                    <div class="flex-shrink-0">
+                      <% if item.product.preview_image.attached? %>
+                        <%= image_tag item.product.preview_image.variant(resize_to_limit: [40, 40]), 
+                                      class: 'rounded', 
+                                      style: 'width: 40px; height: 40px; object-fit: cover;' %>
+                      <% else %>
+                        <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                             style="width: 40px; height: 40px;">
+                          <i class="fas fa-image text-muted" style="font-size: 0.8rem;"></i>
+                        </div>
+                      <% end %>
+                    </div>
+                    <div class="flex-grow-1 ms-2">
+                      <div class="small fw-medium text-truncate" style="max-width: 150px;">
+                        <%= item.product.title %>
+                      </div>
+                      <div class="small text-muted">
+                        <%= number_to_currency(item.price_at_purchase) %>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+                
+                <% if order.order_items.count > 2 %>
+                  <small class="text-muted">
+                    + <%= order.order_items.count - 2 %> more item(s)
+                  </small>
+                <% end %>
+              </div>
+              
+              <!-- Status-specific messages -->
+              <% case order.aasm_state %>
+              <% when 'processing' %>
+                <div class="alert alert-info alert-sm py-2 mb-3">
+                  <i class="fas fa-spinner fa-spin me-1"></i>
+                  <small>Payment processing...</small>
+                </div>
+              <% when 'success' %>
+                <div class="alert alert-sm py-2 mb-3">
+                  <i class="fas fa-check me-1"></i>
+                  <small>Ready for download!</small>
+                </div>
+              <% when 'failed' %>
+                <div class="alert alert-danger alert-sm py-2 mb-3">
+                  <i class="fas fa-exclamation-triangle me-1"></i>
+                  <small>Payment failed</small>
+                </div>
+              <% end %>
+            </div>
+            
+            <div class="card-footer bg-transparent">
+              <div class="d-flex gap-2">
+                <%= link_to order_path(order), class: 'btn btn-outline-primary btn-sm flex-fill' do %>
+                  <i class="fas fa-eye me-1"></i> View Details
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    
+    <!-- Pagination if using Kaminari -->
+    <% if respond_to?(:paginate) %>
+      <div class="d-flex justify-content-center mt-4">
+        <%= paginate @orders %>
+      </div>
+    <% end %>
+    
+  <% else %>
+    <!-- Empty State -->
+    <div class="text-center py-5">
+      <div class="mb-4">
+        <i class="fas fa-shopping-bag text-muted" style="font-size: 4rem;"></i>
+      </div>
+      <h3 class="text-muted mb-3">
+        <% if params[:status].present? %>
+          No <%= params[:status] %> orders found
+        <% else %>
+          No orders yet
+        <% end %>
+      </h3>
+      <p class="text-muted mb-4">
+        <% if params[:status].present? %>
+          You don't have any orders with "<%= params[:status] %>" status.
+        <% else %>
+          Start shopping to see your orders here.
+        <% end %>
+      </p>
+      
+      <% unless params[:status].present? %>
+        <%= link_to root_path, class: 'btn btn-primary' do %>
+          <i class="fas fa-shopping-cart me-2"></i>Start Shopping
+        <% end %>
+      <% else %>
+        <%= link_to orders_path, class: 'btn btn-outline-primary' do %>
+          <i class="fas fa-list me-2"></i>View All Orders
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
 </div>
-<style>
-    .status-badge {
-        font-size: 0.8rem;
-        padding: 0.35rem 0.65rem;
-        border-radius: 0.25rem;
-    }
-</style>
+
+<!-- Auto-refresh script for processing orders -->
+<% if @orders.any?(&:processing?) %>
+  <script>
+    // Auto-refresh page if there are processing orders
+    setTimeout(function() {
+      if (!document.hidden) { // Only refresh if page is visible
+        window.location.reload();
+      }
+    }, 10000); // Refresh every 10 seconds
+    
+    // Stop auto-refresh when page becomes hidden
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        clearTimeout();
+      }
+    });
+  </script>
+<% end %>

@@ -1,11 +1,21 @@
 FactoryBot.define do
   factory :product do
-    title { Faker::Commerce.product_name }
-    description { Faker::Lorem.paragraph }
-    price { Faker::Commerce.price(range: 0..100.0) }
-    status { Product.statuses[:active] }
-    reviews_count { 0 }
-    seller { create(:user, :seller) }
-    category { create(:category) }
+    association :seller, factory: :user, role: :seller
+    title { "Sample Product" }
+    description { "Sample product description" }
+    price { 100 }
+    status { "active" }
+    association :category
+
+    after(:build) do |product|
+      unless product.preview_image.attached?
+        image_path = Rails.root.join('spec/fixtures/files/image.jpg')
+        product.preview_image.attach(
+          io: File.open(image_path),
+          filename: 'image.jpg',
+          content_type: 'image/jpeg'
+        )
+      end
+    end
   end
 end

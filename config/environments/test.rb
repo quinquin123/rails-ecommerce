@@ -44,6 +44,16 @@ Rails.application.configure do
   # ActionMailer::Base.deliveries array.
   config.action_mailer.delivery_method = :test
 
+  # Configure ActiveJob for tests
+  config.active_job.queue_adapter = :test
+  
+  # Configure ActiveStorage for tests
+  config.active_storage.variant_processor = :mini_magick
+  
+  # Set default URL options
+  config.action_controller.default_url_options = { host: 'localhost', port: 3000 }
+  config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
 

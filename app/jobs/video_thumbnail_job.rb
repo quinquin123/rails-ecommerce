@@ -1,10 +1,11 @@
 class VideoThumbnailJob < ApplicationJob
   queue_as :default
   FFMPEG_OPTIONS = {
-    quality: 2,          # Quality scale (2 is good balance)
-    seek_time: '00:00:01', # Get frame at 1 second
-    resolution: '800x600' # Output resolution
+    quality: 2,          
+    seek_time: '00:00:01', 
+    resolution: '800x600' 
   }.freeze
+
   def perform(product_id)
     product = Product.find(product_id)
     return unless product.video.attached?
@@ -13,7 +14,6 @@ class VideoThumbnailJob < ApplicationJob
     attach_thumbnail(product, thumbnail_path)
   rescue => e
     Rails.logger.error "Thumbnail generation failed: #{e.message}"
-    # Gửi thông báo lỗi cho admin/seller
     AdminMailer.thumbnail_error(product, e.message).deliver_later
   ensure
     cleanup_temp_files(temp_video, thumbnail_path)
@@ -22,6 +22,7 @@ class VideoThumbnailJob < ApplicationJob
   def download_video(product)
     product.video.download_blob_to_tempfile
   end
+
   def generate_thumbnail(video_file)
     output_path = "#{Dir.tmpdir}/#{SecureRandom.uuid}.jpg"
     command = [
@@ -31,13 +32,14 @@ class VideoThumbnailJob < ApplicationJob
       '-vframes', '1',
       '-q:v', FFMPEG_OPTIONS[:quality].to_s,
       '-s', FFMPEG_OPTIONS[:resolution],
-      '-y', # Overwrite output file if exists
+      '-y', 
       output_path
     ].join(' ')
     success = system(command)
     raise "FFmpeg failed with exit status #{$?.exitstatus}" unless success && File.exist?(output_path)
     output_path
   end
+
   def attach_thumbnail(product, thumbnail_path)
     product.video_thumbnail.attach(
       io: File.open(thumbnail_path),
@@ -45,6 +47,7 @@ class VideoThumbnailJob < ApplicationJob
       content_type: 'image/jpeg'
     )
   end
+  
   def cleanup_temp_files(*files)
     files.each do |file|
       next unless file && File.exist?(file)

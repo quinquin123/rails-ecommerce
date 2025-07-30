@@ -18,7 +18,34 @@ rescue ActiveRecord::PendingMigrationError => e
 end
 
 RSpec.configure do |config|
-  config.fixture_path = "#{::Rails.root}/spec/fixtures"
+  config.include ActiveJob::TestHelper
+  config.before(:suite) do
+    ActiveStorage::Current.url_options = {
+      host: 'localhost',
+      port: 3000,
+      protocol: 'http'
+    }
+    Rails.application.routes.default_url_options = {
+      host: 'localhost',
+      port: 3000
+    }
+  end
+
+  config.before(:each) do
+    # Clear job queue before each test
+    clear_enqueued_jobs
+    clear_performed_jobs
+  end
+  
+  config.after(:each) do
+    # Clean up after each test
+    clear_enqueued_jobs
+    clear_performed_jobs
+  end
+  
+  config.fixture_paths = [
+    Rails.root.join('spec/fixtures')
+  ]
 
   config.include FactoryBot::Syntax::Methods
 

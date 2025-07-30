@@ -5,5 +5,14 @@ FactoryBot.define do
     password { 'password123' }
     role { 'buyer' }
     status { 'active' }
+
+    trait :seller do
+      role { 'seller' }
+    end
+
+    trait :admin do
+      role { 'admin' }
+    end
+    
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_25_025509) do
+ActiveRecord::Schema[7.1].define(version: 2025_07_28_055807) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -85,6 +85,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_025509) do
     t.string "download_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "download_expires_at"
     t.index ["order_id"], name: "index_order_items_on_order_id"
     t.index ["product_id"], name: "index_order_items_on_product_id"
   end
@@ -96,6 +97,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_025509) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "payment_method"
+    t.string "aasm_state", default: "pending"
+    t.index ["aasm_state"], name: "index_orders_on_aasm_state"
     t.index ["buyer_id"], name: "index_orders_on_buyer_id"
   end
 
@@ -105,7 +108,12 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_025509) do
     t.decimal "amount", precision: 10, scale: 2
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "payment_method"
+    t.datetime "processed_at"
+    t.text "failure_reason"
     t.index ["order_id"], name: "index_payments_on_order_id"
+    t.index ["processed_at"], name: "index_payments_on_processed_at"
+    t.index ["status"], name: "index_payments_on_status"
   end
 
   create_table "product_imports", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
