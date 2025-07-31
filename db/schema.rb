@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_28_055807) do
+ActiveRecord::Schema[7.1].define(version: 2025_07_31_104351) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -76,6 +76,14 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_28_055807) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["product_id"], name: "index_download_logs_on_product_id"
+  end
+
+  create_table "jwt_denylist", force: :cascade do |t|
+    t.string "jti", null: false
+    t.datetime "exp", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["jti"], name: "index_jwt_denylist_on_jti"
   end
 
   create_table "order_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

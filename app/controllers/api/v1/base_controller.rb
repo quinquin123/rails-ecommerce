@@ -1,6 +1,6 @@
 class Api::V1::BaseController < ApplicationController
   before_action :authenticate_user!
-
+  
   def pagination_meta(collection)
     {
       current_page: collection.current_page,

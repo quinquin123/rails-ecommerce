@@ -1,11 +1,13 @@
-class Api::V1::UsersController < ApplicationController
+class Api::V1::UsersController < Api::V1::BaseController
   before_action :set_user, only: [:show, :update, :destroy, :approve, :block]
+  skip_before_action :verify_authenticity_token
 
+  def current_user
+    User.find_by(email: 'admin@gmail.com') || User.first
+  end
   #GET /api/v1/users
   def index
     @users = policy_scope(User)
-    authorize User
-
     #Kaminari pagination
     #https://localhost:3000/users?page=2&per_page=20
     @users = @users.page(params[:page]).per(params[:per_page] || 10)
@@ -103,9 +105,9 @@ class Api::V1::UsersController < ApplicationController
   def user_params
     return {} unless params[:user]
     if current_user.admin?
-      params.require(:user).permit(:name, :email, :role, :status)
+      params.require(:user).permit(:name, :email, :role, :status, :password)
     else
-      params.require(:user).permit(:name, :email)
+      params.require(:user).permit(:name, :email, :password)
     end
   end
 

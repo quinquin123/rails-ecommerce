@@ -1,6 +1,9 @@
 require 'sidekiq/web'
 
 Rails.application.routes.draw do
+  #mount_devise_token_auth_for 'User', at: 'auth'
+  mount Rswag::Ui::Engine => '/api-docs'
+  mount Rswag::Api::Engine => '/api-docs'
   devise_for :users, controllers: { passwords: 'users/passwords' }
   mount Sidekiq::Web => '/sidekiq' 
   mount ActiveStorage::Engine => '/attachments'
@@ -31,6 +34,19 @@ Rails.application.routes.draw do
   #API routes
   namespace :api do 
     namespace :v1 do
+      devise_for :users,
+        path: '',
+        path_names: {
+          sign_in: 'login',
+          sign_out: 'logout',
+          registration: 'signup'
+        },
+        controllers: {
+          sessions: 'api/v1/sessions',
+          registrations: 'api/v1/registrations'
+        },
+        defaults: { format: :json } 
+
       resources :products do
         member do
           get :download
@@ -46,6 +62,13 @@ Rails.application.routes.draw do
           patch :retry_payment
         end
       end
+      resources :orders, except: [:new, :edit] do
+        member do
+          post :retry_payment
+          post :refund
+        end
+      end
+
     end
   end
   #Web routes

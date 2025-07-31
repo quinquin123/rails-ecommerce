@@ -1,11 +1,21 @@
-class ProductsController < ApplicationController
+class Api::V1::ProductsController < Api::V1::BaseController
   before_action :authenticate_user!, except: [:index, :show, :search]
   before_action :set_product, only: [:show, :edit, :update, :destroy]
   
   #GET /api/v1/products
   def index
     @products = policy_scope(Product)
-    
+                .includes(:seller, :category, preview_image_attachment: :blob)
+                .page(params[:page])
+                .per(params[:per_page] || 20)
+
+    render json: {
+      products: ActiveModelSerializers::SerializableResource.new(
+        @products,
+        each_serializer: ProductSerializer
+      ).as_json,
+      meta: pagination_meta(@products)
+    }
   end
 
   def show

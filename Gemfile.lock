@@ -142,6 +142,13 @@ GEM
       railties (>= 4.1.0)
       responders
       warden (~> 1.2.3)
+    devise-jwt (0.12.1)
+      devise (~> 4.0)
+      warden-jwt_auth (~> 0.10)
+    devise_token_auth (1.2.5)
+      bcrypt (~> 3.0)
+      devise (> 3.5.2, < 5)
+      rails (>= 4.2.0, < 8.1)
     diff-lcs (1.6.2)
     docile (1.4.1)
     dotenv (3.1.8)
@@ -149,6 +156,16 @@ GEM
       dotenv (= 3.1.8)
       railties (>= 6.1)
     drb (2.2.3)
+    dry-auto_inject (1.0.1)
+      dry-core (~> 1.0)
+      zeitwerk (~> 2.6)
+    dry-configurable (1.2.0)
+      dry-core (~> 1.0, < 2)
+      zeitwerk (~> 2.6)
+    dry-core (1.0.2)
+      concurrent-ruby (~> 1.0)
+      logger
+      zeitwerk (~> 2.6)
     erb (4.0.4)
       cgi (>= 0.3.3)
     erubi (1.13.1)
@@ -180,7 +197,12 @@ GEM
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
     jmespath (1.6.2)
+    json-schema (5.2.1)
+      addressable (~> 2.8)
+      bigdecimal (~> 3.1)
     jsonapi-renderer (0.2.2)
+    jwt (2.10.2)
+      base64
     kaminari (1.2.2)
       activesupport (>= 4.1.0)
       kaminari-actionview (= 1.2.2)
@@ -331,6 +353,21 @@ GEM
       rspec-mocks (~> 3.13)
       rspec-support (~> 3.13)
     rspec-support (3.13.4)
+    rswag (2.16.0)
+      rswag-api (= 2.16.0)
+      rswag-specs (= 2.16.0)
+      rswag-ui (= 2.16.0)
+    rswag-api (2.16.0)
+      activesupport (>= 5.2, < 8.1)
+      railties (>= 5.2, < 8.1)
+    rswag-specs (2.16.0)
+      activesupport (>= 5.2, < 8.1)
+      json-schema (>= 2.2, < 6.0)
+      railties (>= 5.2, < 8.1)
+      rspec-core (>= 2.14)
+    rswag-ui (2.16.0)
+      actionpack (>= 5.2, < 8.1)
+      railties (>= 5.2, < 8.1)
     ruby-vips (2.2.4)
       ffi (~> 1.12)
       logger
@@ -385,6 +422,11 @@ GEM
       concurrent-ruby (~> 1.0)
     warden (1.2.9)
       rack (>= 2.0.9)
+    warden-jwt_auth (0.11.0)
+      dry-auto_inject (>= 0.8, < 2)
+      dry-configurable (>= 0.13, < 2)
+      jwt (~> 2.1)
+      warden (~> 1.2)
     web-console (4.2.1)
       actionview (>= 6.0.0)
       activemodel (>= 6.0.0)
@@ -411,6 +453,8 @@ DEPENDENCIES
   capybara
   debug
   devise
+  devise-jwt
+  devise_token_auth
   dotenv-rails
   factory_bot_rails
   faker
@@ -429,6 +473,7 @@ DEPENDENCIES
   redis
   roo
   rspec-rails (~> 6.1.1)
+  rswag
   sassc-rails
   selenium-webdriver
   shoulda-matchers (~> 5.0)
