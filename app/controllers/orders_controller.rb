@@ -11,6 +11,8 @@ class OrdersController < ApplicationController
     if params[:status].present? && %w[pending processing success failed refunded].include?(params[:status])
       @orders = @orders.where(aasm_state: params[:status])
     end
+
+    @orders = Order.order(created_at: :desc).page(params[:page]).per(10)
   end
   
   def show

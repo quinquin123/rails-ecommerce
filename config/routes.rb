@@ -68,7 +68,10 @@ Rails.application.routes.draw do
           post :refund
         end
       end
-
+      resource :cart, only: [:show] do
+        post :add_item
+        delete :remove_item
+      end
     end
   end
   #Web routes

@@ -17,7 +17,7 @@ RSpec.describe 'Authentication', type: :request do
       }
       request_body_example value: {
         user: {
-          email: "trickingquinquin@gmail.com",
+          email: "example@gmail.com",
           password: "123456"
         }
       }
@@ -41,13 +41,14 @@ RSpec.describe 'Authentication', type: :request do
         properties: {
           name: { type: :string },
           email: { type: :string },
+          role: { type: :string },
           password: { type: :string },
           password_confirmation: { type: :string }
         },
         required: ['name', 'email', 'password', 'password_confirmation']
       }
 
-      response '201', 'Register successfully' do
+      response '201', 'Signup successfully' do
         run_test!
       end
 
@@ -63,10 +64,20 @@ RSpec.describe 'Authentication', type: :request do
       security [{ bearerAuth: [] }]
 
       response '200', 'Log out successfully' do
+        let(:user) { create(:user) }
+        let(:token) do
+          Warden::JWTAuth::UserEncoder.new.call(user, :user, nil).first
+        end
+        let(:Authorization) { "Bearer #{token}" }
+
+        before { delete '/api/v1/logout', headers: { 'Authorization': Authorization } }
+
         run_test!
       end
 
       response '401', 'Not authentic' do
+        before { delete '/api/v1/logout' }
+
         run_test!
       end
     end

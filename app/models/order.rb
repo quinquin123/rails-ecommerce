@@ -9,7 +9,8 @@ class Order < ApplicationRecord
   has_many :products, through: :order_items
   
   validates :total_amount, presence: true, numericality: { greater_than: 0 }
-  
+  validates :payment_method, presence: true
+
   aasm column: :aasm_state do
     state :pending, initial: true
     state :processing

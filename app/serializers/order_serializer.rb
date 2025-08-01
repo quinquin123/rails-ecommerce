@@ -1,5 +1,5 @@
 class OrderSerializer < ActiveModel::Serializer
-  attributes :id, :total_amount, :status, :payment_method, :shipping_address, 
+  attributes :id, :total_amount, :status, :payment_method,  
              :created_at, :updated_at, :can_be_retried, :can_be_refunded, :downloadable
   
   belongs_to :buyer, serializer: UserSerializer

@@ -13,8 +13,12 @@ RSpec.describe 'api/v1/orders', type: :request do
 
       response '200', 'Order list returned' do
         let(:user) { create(:user) }
-        let(:Authorization) { "Bearer #{JwtService.encode(user_id: user.id)}" }
-        let!(:orders) { create_list(:order, 3, user: user) }
+        let(:token) { JwtService.encode(user_id: user.id) }
+
+        before do
+          header 'Authorization', "Bearer #{token}"
+        end
+        let!(:orders) { create_list(:order, 3, buyer_id: user.id) }
 
         run_test!
       end
@@ -27,12 +31,15 @@ RSpec.describe 'api/v1/orders', type: :request do
       parameter name: :order, in: :body, required: true, schema: {
         type: :object,
         properties: {
-          shipping_address: { type: :string },
           payment_method: { type: :string }
         },
-        required: %w[shipping_address payment_method]
+        required: %w[payment_method]
       }
-
+      request_body_example value: {
+        order: {
+          "payment_method": "bank_transfer"
+        }
+      }
       response '201', 'Order created successfully' do
         let(:user) { create(:user) }
         let(:Authorization) { "Bearer #{JwtService.encode(user_id: user.id)}" }
@@ -44,7 +51,6 @@ RSpec.describe 'api/v1/orders', type: :request do
 
         let(:order) do
           {
-            shipping_address: "123 Sample Street",
             payment_method: "credit_card"
           }
         end
@@ -55,7 +61,7 @@ RSpec.describe 'api/v1/orders', type: :request do
       response '422', 'Cart is empty' do
         let(:user) { create(:user) }
         let(:Authorization) { "Bearer #{JwtService.encode(user_id: user.id)}" }
-        let(:order) { { shipping_address: "", payment_method: "" } }
+        let(:order) { { payment_method: "" } }
 
         run_test!
       end
@@ -86,31 +92,6 @@ RSpec.describe 'api/v1/orders', type: :request do
       end
     end
 
-    put 'Update Order Shipping Address' do
-      tags 'Orders'
-      security [bearerAuth: []]
-      consumes 'application/json'
-      parameter name: :id, in: :path, type: :string
-      parameter name: :order, in: :body, schema: {
-        type: :object,
-        properties: {
-          shipping_address: { type: :string }
-        }
-      }
-
-      response '200', 'Order updated' do
-        let(:user) { create(:user) }
-        let(:order) { create(:order, user: user) }
-        let(:id) { order.id }
-        let(:Authorization) { "Bearer #{JwtService.encode(user_id: user.id)}" }
-
-        let(:order) do
-          { shipping_address: "New Updated Address" }
-        end
-
-        run_test!
-      end
-    end
   end
 
   path '/api/v1/orders/{id}/retry_payment' do
@@ -142,10 +123,39 @@ RSpec.describe 'api/v1/orders', type: :request do
   path '/api/v1/orders/{id}/refund' do
     post 'Refund Order' do
       tags 'Orders'
+      consumes 'application/json'
+      produces 'application/json'
       security [bearerAuth: []]
-      parameter name: :id, in: :path, type: :string
+
+      parameter name: :id, in: :path, type: :string, description: 'Order ID'
 
       response '200', 'Order refunded' do
+        schema type: :object,
+          properties: {
+            message: { type: :string },
+            order: {
+              type: :object,
+              properties: {
+                id: { type: :string },
+                aasm_state: { type: :string },
+                total: { type: :number },
+                created_at: { type: :string, format: :date_time }
+              },
+              required: ['id', 'aasm_state']
+            }
+          },
+          required: ['message', 'order']
+
+        example 'application/json', :success_example, {
+          message: 'Order refunded successfully',
+          order: {
+            id: '2c5494ac-f692-410f-81f3-887311b9ef8b',
+            aasm_state: 'refunded',
+            total: 120.5,
+            created_at: '2024-03-20T12:00:00Z'
+          }
+        }
+
         let(:user) { create(:user) }
         let(:order) { create(:order, :refundable, user: user) }
         let(:id) { order.id }
@@ -155,6 +165,16 @@ RSpec.describe 'api/v1/orders', type: :request do
       end
 
       response '422', 'Refund denied' do
+        schema type: :object,
+          properties: {
+            error: { type: :string }
+          },
+          required: ['error']
+
+        example 'application/json', :denied_example, {
+          error: 'Refund failed: order not eligible'
+        }
+
         let(:user) { create(:user) }
         let(:order) { create(:order, :success, user: user) }
         let(:id) { order.id }
@@ -164,4 +184,5 @@ RSpec.describe 'api/v1/orders', type: :request do
       end
     end
   end
+
 end
