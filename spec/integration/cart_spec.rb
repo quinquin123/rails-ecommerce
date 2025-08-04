@@ -8,8 +8,20 @@ RSpec.describe 'API::V1::Carts', type: :request do
       security [ bearerAuth: [] ]
 
       response '200', 'OK' do
-        let(:user) { create(:user) }
+        let(:user) { create(:user, role: :buyer) }
         let(:Authorization) { "Bearer #{user_token(user)}" }
+
+        run_test!
+      end
+      response '403', 'Forbidden for seller' do
+        let(:seller) { create(:user, role: :seller) }
+        let(:Authorization) { "Bearer #{user_token(seller)}" }
+
+        run_test!
+      end
+      response '403', 'Forbidden for admin' do
+        let(:admin) { create(:user, role: :admin) }
+        let(:Authorization) { "Bearer #{user_token(seller)}" }
 
         run_test!
       end

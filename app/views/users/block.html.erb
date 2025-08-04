@@ -1,2 +1,297 @@
-<h1>Users#block</h1>
-<p>Find me in app/views/users/block.html.erb</p>
+<% content_for :title, "Block User" %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card shadow-lg border-0">
+      <div class="card-header bg-danger text-white text-center py-4">
+        <div class="mb-3">
+          <i class="fas fa-user-slash fa-3x"></i>
+        </div>
+        <h3 class="mb-0">Block User Account</h3>
+        <p class="mb-0 opacity-75">Restrict user access</p>
+      </div>
+      
+      <div class="card-body p-4">
+        <!-- Warning Alert -->
+        <div class="alert alert-danger" role="alert">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle fa-lg me-3"></i>
+            <div>
+              <strong>Warning: This is a restrictive action!</strong>
+              <br>
+              <small>Blocking this user will immediately revoke their access to the platform and all its features.</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Details Card -->
+        <div class="card bg-light border-0 mb-4">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-auto">
+                <div class="avatar-lg">
+                  <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                    <%= @user.name&.first&.upcase || @user.email.first.upcase %>
+                  </div>
+                </div>
+              </div>
+              <div class="col">
+                <h5 class="mb-1">
+                  <%= @user.name.present? ? @user.name : 'User' %>
+                </h5>
+                <p class="text-muted mb-2">
+                  <i class="fas fa-envelope me-1"></i>
+                  <%= @user.email %>
+                </p>
+                <div class="d-flex gap-2">
+                  <span class="badge bg-<%= @user.role == 'admin' ? 'danger' : @user.role == 'seller' ? 'warning' : 'info' %>">
+                    <i class="fas fa-<%= @user.role == 'admin' ? 'crown' : @user.role == 'seller' ? 'store' : 'shopping-cart' %> me-1"></i>
+                    <%= @user.role.capitalize %>
+                  </span>
+                  
+                  <% case @user.status %>
+                  <% when 'active' %>
+                    <span class="badge bg-success">
+                      <i class="fas fa-check-circle me-1"></i>Active
+                    </span>
+                  <% when 'pending_approval' %>
+                    <span class="badge bg-warning">
+                      <i class="fas fa-clock me-1"></i>Pending
+                    </span>
+                  <% when 'inactive' %>
+                    <span class="badge bg-secondary">
+                      <i class="fas fa-pause me-1"></i>Inactive
+                    </span>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Statistics -->
+        <div class="row mb-4">
+          <div class="col-sm-4 text-center">
+            <div class="border-end">
+              <h4 class="text-primary mb-1">
+                <%= @user.created_at.present? ? time_ago_in_words(@user.created_at) : 'N/A' %>
+              </h4>
+              <small class="text-muted">Member For</small>
+            </div>
+          </div>
+          <div class="col-sm-4 text-center">
+            <div class="border-end">
+              <h4 class="text-info mb-1">
+                <% if @user.seller? %>
+                  <%= @user.products.count %>
+                <% elsif @user.buyer? %>
+                  <%= @user.orders.count %>
+                <% else %>
+                  0
+                <% end %>
+              </h4>
+              <small class="text-muted">
+                <% if @user.seller? %>
+                  Products
+                <% elsif @user.buyer? %>
+                  Orders
+                <% else %>
+                  Activities
+                <% end %>
+              </small>
+            </div>
+          </div>
+          <div class="col-sm-4 text-center">
+            <h4 class="text-warning mb-1">
+              <%= @user.updated_at.strftime("%m/%d/%Y") %>
+            </h4>
+            <small class="text-muted">Last Updated</small>
+          </div>
+        </div>
+
+        <!-- Impact Warning -->
+        <div class="alert alert-warning border-0" role="alert">
+          <h6 class="alert-heading">
+            <i class="fas fa-info-circle me-2"></i>
+            What happens when you block this user?
+          </h6>
+          <ul class="mb-0 ps-3">
+            <li class="mb-1">User will be immediately logged out of all sessions</li>
+            <li class="mb-1">User cannot sign in or access any platform features</li>
+            <% if @user.seller? %>
+              <li class="mb-1">All user's products will be automatically deactivated</li>
+              <li class="mb-1">Ongoing transactions may be affected</li>
+            <% elsif @user.buyer? %>
+              <li class="mb-1">User's cart will be preserved but inaccessible</li>
+              <li class="mb-1">Pending orders will need manual review</li>
+            <% end %>
+            <li class="mb-0">This action can be reversed by an administrator</li>
+          </ul>
+        </div>
+
+        <!-- Confirmation Section -->
+        <div class="bg-light p-3 rounded mb-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="confirmBlock" required>
+            <label class="form-check-label text-dark" for="confirmBlock">
+              <strong>I understand the consequences of blocking this user</strong>
+            </label>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+          <%= link_to users_path, class: "btn btn-outline-secondary me-md-2" do %>
+            <i class="fas fa-arrow-left me-1"></i>
+            Cancel
+          <% end %>
+          
+          <%= link_to user_path(@user), class: "btn btn-outline-info me-md-2" do %>
+            <i class="fas fa-eye me-1"></i>
+            View Details
+          <% end %>
+          
+          <%= link_to block_user_path(@user), 
+              class: "btn btn-danger btn-lg", 
+              id: "blockUserBtn",
+              data: { 
+                turbo_method: :patch,
+                turbo_confirm: "⚠️ FINAL WARNING ⚠️\n\nAre you absolutely sure you want to block #{@user.name || @user.email}?\n\nThis will:\n- Immediately terminate their access\n- Affect their ongoing activities\n- Require admin action to reverse\n\nType 'BLOCK' to confirm this action." 
+              } do %>
+            <i class="fas fa-ban me-2"></i>
+            Block User Account
+          <% end %>
+        </div>
+      </div>
+      
+      <div class="card-footer bg-light text-center">
+        <small class="text-muted">
+          <i class="fas fa-shield-alt me-1"></i>
+          This action requires administrator privileges and can be audited
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Additional Guidelines Panel -->
+<div class="row justify-content-center mt-4">
+  <div class="col-lg-6">
+    <div class="card border-warning">
+      <div class="card-header bg-warning text-dark">
+        <h6 class="mb-0">
+          <i class="fas fa-gavel me-2"></i>
+          Blocking Guidelines
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="text-danger">
+              <i class="fas fa-times-circle me-1"></i>
+              Valid Reasons to Block:
+            </h6>
+            <ul class="list-unstyled small">
+              <li class="mb-1">• Policy violations</li>
+              <li class="mb-1">• Fraudulent activities</li>
+              <li class="mb-1">• Spam or abuse</li>
+              <li class="mb-1">• Security concerns</li>
+              <li class="mb-1">• Legal requirements</li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <h6 class="text-info">
+              <i class="fas fa-lightbulb me-1"></i>
+              Consider Alternatives:
+            </h6>
+            <ul class="list-unstyled small">
+              <li class="mb-1">• Temporary suspension</li>
+              <li class="mb-1">• Warning notification</li>
+              <li class="mb-1">• Feature restrictions</li>
+              <li class="mb-1">• Account review</li>
+              <li class="mb-1">• User education</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="alert alert-info mt-3 mb-0" role="alert">
+          <small>
+            <i class="fas fa-info-circle me-1"></i>
+            <strong>Remember:</strong> Blocked users can still be unblocked later, but the disruption to their activities may have lasting effects. Document your reason for blocking in the admin logs.
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .avatar-lg {
+    flex-shrink: 0;
+  }
+  
+  .card-header.bg-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%) !important;
+  }
+  
+  .btn-danger.btn-lg {
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-danger.btn-lg:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+  }
+  
+  .btn-danger.btn-lg:disabled {
+    transform: none;
+    box-shadow: none;
+    opacity: 0.6;
+  }
+  
+  .alert {
+    border: none;
+    border-radius: 10px;
+  }
+  
+  .card {
+    border-radius: 15px;
+    overflow: hidden;
+  }
+  
+  .border-end {
+    border-right: 1px solid #dee2e6 !important;
+  }
+  
+  @media (max-width: 576px) {
+    .border-end {
+      border-right: none !important;
+      border-bottom: 1px solid #dee2e6 !important;
+      padding-bottom: 1rem;
+      margin-bottom: 1rem;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('confirmBlock');
+    const blockBtn = document.getElementById('blockUserBtn');
+    
+    // Disable button initially
+    blockBtn.classList.add('disabled');
+    blockBtn.style.pointerEvents = 'none';
+    
+    // Enable/disable button based on checkbox
+    checkbox.addEventListener('change', function() {
+      if (this.checked) {
+        blockBtn.classList.remove('disabled');
+        blockBtn.style.pointerEvents = 'auto';
+      } else {
+        blockBtn.classList.add('disabled');
+        blockBtn.style.pointerEvents = 'none';
+      }
+    });
+  });
+</script>

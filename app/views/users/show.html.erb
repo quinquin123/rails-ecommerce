@@ -1,2 +1,302 @@
-<h1>Users#show</h1>
-<p>Find me in app/views/users/show.html.erb</p>
+<% content_for :title, "User Details" %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">
+    <i class="fas fa-user me-2"></i>
+    User Details
+  </h1>
+  <%= link_to users_path, class: "btn btn-secondary" do %>
+    <i class="fas fa-arrow-left me-1"></i>
+    Back to Users
+  <% end %>
+</div>
+
+<div class="row">
+  <!-- User Info Card -->
+  <div class="col-lg-8">
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+          <i class="fas fa-info-circle me-2"></i>
+          Basic Information
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label text-muted">Full Name</label>
+            <div class="fw-bold">
+              <%= @user.name.present? ? @user.name : 'Not provided' %>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label text-muted">Email Address</label>
+            <div class="fw-bold">
+              <i class="fas fa-envelope me-1"></i>
+              <%= @user.email %>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label text-muted">Role</label>
+            <div>
+              <% case @user.role %>
+              <% when 'admin' %>
+                <span class="badge bg-danger fs-6">
+                  <i class="fas fa-crown me-1"></i>Administrator
+                </span>
+              <% when 'seller' %>
+                <span class="badge bg-warning fs-6">
+                  <i class="fas fa-store me-1"></i>Seller
+                </span>
+              <% when 'buyer' %>
+                <span class="badge bg-info fs-6">
+                  <i class="fas fa-shopping-cart me-1"></i>Buyer
+                </span>
+              <% end %>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label text-muted">Account Status</label>
+            <div>
+              <% case @user.status %>
+              <% when 'active' %>
+                <span class="badge bg-success fs-6">
+                  <i class="fas fa-check-circle me-1"></i>Active
+                </span>
+              <% when 'blocked' %>
+                <span class="badge bg-danger fs-6">
+                  <i class="fas fa-ban me-1"></i>Blocked
+                </span>
+              <% when 'pending_approval' %>
+                <span class="badge bg-warning fs-6">
+                  <i class="fas fa-clock me-1"></i>Pending Approval
+                </span>
+              <% when 'inactive' %>
+                <span class="badge bg-secondary fs-6">
+                  <i class="fas fa-pause me-1"></i>Inactive
+                </span>
+              <% end %>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label text-muted">Member Since</label>
+            <div class="fw-bold">
+              <i class="fas fa-calendar me-1"></i>
+              <%= @user.created_at.strftime("%B %d, %Y") %>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label text-muted">Last Updated</label>
+            <div class="fw-bold">
+              <i class="fas fa-edit me-1"></i>
+              <%= @user.updated_at.strftime("%B %d, %Y at %I:%M %p") %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Statistics (if user is seller or buyer) -->
+    <% if @user.seller? || @user.buyer? %>
+      <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-chart-bar me-2"></i>
+            Activity Statistics
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <% if @user.seller? %>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <h3 class="text-primary mb-0">
+                    <%= @user.products.count %>
+                  </h3>
+                  <small class="text-muted">Products Listed</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <h3 class="text-success mb-0">
+                    <%= @user.products.where(status: 'active').count %>
+                  </h3>
+                  <small class="text-muted">Active Products</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <h3 class="text-warning mb-0">
+                    <%= @user.products.where(status: 'inactive').count %>
+                  </h3>
+                  <small class="text-muted">Inactive Products</small>
+                </div>
+              </div>
+            <% elsif @user.buyer? %>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <h3 class="text-primary mb-0">
+                    <%= @user.orders.count %>
+                  </h3>
+                  <small class="text-muted">Total Orders</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <h3 class="text-success mb-0">
+                    <%= @user.orders.where(status: 'completed').count %>
+                  </h3>
+                  <small class="text-muted">Completed Orders</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <h3 class="text-info mb-0">
+                    <%= @user.cart&.cart_items&.count || 0 %>
+                  </h3>
+                  <small class="text-muted">Items in Cart</small>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Actions Card -->
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">
+          <i class="fas fa-cogs me-2"></i>
+          Actions
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          <% if current_user.admin? %>
+            <%= link_to edit_user_path(@user), class: "btn btn-primary" do %>
+              <i class="fas fa-edit me-2"></i>
+              Edit User
+            <% end %>
+
+            <% if @user.status == 'pending_approval' %>
+              <%= link_to approve_user_path(@user),
+                  class: "btn btn-success",
+                  data: { turbo_method: :patch, turbo_confirm: "Are you sure?" } do %>
+                <i class="fas fa-check me-2"></i>
+                Approve User
+              <% end %>
+            <% end %>
+
+            <% if @user.status != 'blocked' && @user != current_user %>
+              <%= link_to block_user_path(@user), 
+                  class: "btn btn-danger", 
+                  data: { turbo_method: :patch, turbo_confirm: "Are you sure?" } do %>
+                <i class="fas fa-ban me-2"></i>
+                Block User
+              <% end %>
+            <% elsif @user.status == 'blocked' %>
+              <button class="btn btn-outline-secondary" disabled>
+                <i class="fas fa-ban me-2"></i>
+                User Blocked
+              </button>
+            <% end %>
+          <% else %>
+            <% if @user == current_user %>
+              <%= link_to edit_user_registration_path, class: "btn btn-primary" do %>
+                <i class="fas fa-edit me-2"></i>
+                Edit Profile
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
+
+        <hr>
+
+        <div class="text-center">
+          <small class="text-muted">
+            <i class="fas fa-info-circle me-1"></i>
+            User ID: <%= @user.id %>
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats Card -->
+    <div class="card shadow-sm mt-4">
+      <div class="card-header bg-light">
+        <h6 class="mb-0">
+          <i class="fas fa-clock me-2"></i>
+          Account Timeline
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-marker bg-primary"></div>
+            <div class="timeline-content">
+              <h6 class="mb-1">Account Created</h6>
+              <small class="text-muted">
+                <%= @user.created_at.strftime("%B %d, %Y") %>
+              </small>
+            </div>
+          </div>
+          <% if @user.updated_at != @user.created_at %>
+            <div class="timeline-item">
+              <div class="timeline-marker bg-info"></div>
+              <div class="timeline-content">
+                <h6 class="mb-1">Last Update</h6>
+                <small class="text-muted">
+                  <%= @user.updated_at.strftime("%B %d, %Y") %>
+                </small>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .timeline {
+    position: relative;
+    padding-left: 30px;
+  }
+  
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+  }
+  
+  .timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  
+  .timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid white;
+  }
+  
+  .timeline-content h6 {
+    margin-bottom: 2px;
+    font-size: 0.9rem;
+  }
+  
+  .badge.fs-6 {
+    font-size: 0.875rem !important;
+  }
+</style>

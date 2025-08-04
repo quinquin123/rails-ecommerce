@@ -22,7 +22,12 @@ Rails.application.routes.draw do
     post :add_item
     delete :remove_item
   end
-  resources :orders, only: [:new, :create, :index, :show] 
+  resources :orders, only: [:new, :create, :index, :show] do
+    member do
+      patch :retry_payment
+    end
+  end
+
   resources :reviews, only: [:create]
   resources :product_imports, only: [:new, :create]
   resources :orders_items do
@@ -79,7 +84,6 @@ Rails.application.routes.draw do
     member do
       patch :approve
       patch :block
-      patch :retry_payment
     end
   end
   get 'reports/buyer', to: 'reports#buyer'

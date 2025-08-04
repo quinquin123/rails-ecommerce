@@ -72,7 +72,7 @@ class Product < ApplicationRecord
 
     return true if user == seller
 
-    user.orders.successful.joins(:order_items).where(order_items: { product_id: id }).exists?
+    user.orders.paid.joins(:order_items).where(order_items: { product_id: id }).exists?
   end
 
   def download_url

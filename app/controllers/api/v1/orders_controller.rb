@@ -10,8 +10,10 @@ class Api::V1::OrdersController < Api::V1::BaseController
       @orders = @orders.where(aasm_state: params[:status])
     end
 
-    @orders = @orders.page(params[:page]).per(params[:per_page] || 20)
-    
+    @orders = @orders.order(created_at: :desc)
+                     .page(params[:page])
+                     .per(params[:per_page] || 20)
+
     render json: {
       orders: ActiveModelSerializers::SerializableResource.new(
         @orders,
@@ -27,9 +29,13 @@ class Api::V1::OrdersController < Api::V1::BaseController
   end
 
   def create
-    cart = current_user.cart
+    unless current_user.buyer?
+      return render json: { error: 'Only buyers can place orders' }, status: :forbidden
+    end
 
-    if cart.blank? || cart.cart_items.empty?
+    cart = current_user.cart || current_user.create_cart
+
+    if cart.cart_items.empty?
       return render json: { error: 'Cart is empty' }, status: :unprocessable_entity
     end
 
@@ -39,6 +45,7 @@ class Api::V1::OrdersController < Api::V1::BaseController
       total_amount: cart.total_price,
       payment_method: order_params[:payment_method]
     )
+
     authorize @order
 
     ActiveRecord::Base.transaction do
@@ -102,7 +109,7 @@ class Api::V1::OrdersController < Api::V1::BaseController
 
     begin
       @order.refund!
-      
+
       render json: {
         message: 'Order refunded successfully',
         order: OrderSerializer.new(@order).as_json
@@ -134,6 +141,6 @@ class Api::V1::OrdersController < Api::V1::BaseController
   end
 
   def valid_status?(status)
-    %w[pending processing success failed refunded].include?(status)
+    %w[pending paid failed].include?(status)
   end
 end

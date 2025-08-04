@@ -48,6 +48,9 @@ class Api::V1::CartsController < Api::V1::BaseController
   private
 
   def set_cart
+    unless current_user.buyer?
+      return render json: { error: "Only buyers can have carts" }, status: :forbidden
+    end
     @cart = current_user.cart || current_user.create_cart
   end
 end

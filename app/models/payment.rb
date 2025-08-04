@@ -1,15 +1,15 @@
 class Payment < ApplicationRecord
   belongs_to :order
   
-  validates :status, presence: true, inclusion: { in: %w[processing success failed refunded] }
+  validates :status, presence: true, inclusion: { in: %w[pending paid failed] }
   validates :amount, presence: true
   
-  scope :successful, -> { where(status: 'success') }
+  scope :successful, -> { where(status: 'paid') }
   scope :failed, -> { where(status: 'failed') }
-  scope :processing, -> { where(status: 'processing') }
+  scope :processing, -> { where(status: 'pending') }
   
   def successful?
-    status == 'success'
+    status == 'paid'
   end
   
   def failed?
@@ -17,10 +17,6 @@ class Payment < ApplicationRecord
   end
   
   def processing?
-    status == 'processing'
-  end
-  
-  def refunded?
-    status == 'refunded'
+    status == 'pending'
   end
 end

@@ -102,6 +102,8 @@ paths:
       responses:
         '200':
           description: OK
+        '403':
+          description: Forbidden for admin
   "/api/v1/cart/add_item":
     post:
       summary: Add product to cart
@@ -230,72 +232,6 @@ paths:
           description: Retry initiated
         '422':
           description: Order cannot be retried
-  "/api/v1/orders/{id}/refund":
-    post:
-      summary: Refund Order
-      tags:
-      - Orders
-      security:
-      - bearerAuth: []
-      parameters:
-      - name: id
-        in: path
-        description: Order ID
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Order refunded
-          content:
-            application/json:
-              examples:
-                success_example:
-                  value:
-                    message: Order refunded successfully
-                    order:
-                      id: 2c5494ac-f692-410f-81f3-887311b9ef8b
-                      aasm_state: refunded
-                      total: 120.5
-                      created_at: '2024-03-20T12:00:00Z'
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  order:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      aasm_state:
-                        type: string
-                      total:
-                        type: number
-                      created_at:
-                        type: string
-                        format: date_time
-                    required:
-                    - id
-                    - aasm_state
-                required:
-                - message
-                - order
-        '422':
-          description: Refund denied
-          content:
-            application/json:
-              examples:
-                denied_example:
-                  value:
-                    error: 'Refund failed: order not eligible'
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                required:
-                - error
   "/api/v1/products":
     get:
       summary: List products with pagination
