@@ -4,13 +4,12 @@ class Api::V1::SessionsController < Devise::SessionsController
 
   def create
     login_params = params.require(:user).permit(:email, :password)
-
     user = User.find_by(email: login_params[:email])
 
     if user && user.valid_password?(login_params[:password])
       self.resource = user
       sign_in(resource_name, resource)
-
+      
       token = Warden::JWTAuth::UserEncoder.new.call(resource, :user, nil).first rescue nil
 
       render json: {

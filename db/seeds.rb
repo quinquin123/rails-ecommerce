@@ -60,7 +60,7 @@ admin = User.find_or_create_by(email: admin_data[:email]) do |user|
 end
 
 
-# Tạo Products với dữ liệu đa dạng và status khác nhau
+# Tạo Products 
 products_data = [
   {
     title: "Modern React Dashboard Template",
@@ -123,7 +123,7 @@ products_data = [
     preview_url: "https://via.placeholder.com/400x300/10b981/ffffff?text=Stock+Photos",
     download_url: "https://example.com/downloads/stock-photos.zip",
     tags: ["photography", "4k", "commercial", "business", "lifestyle"],
-    status: "moderated", # Sản phẩm đang chờ kiểm duyệt
+    status: "moderated", 
     average_rating: 0.0,
     reviews_count: 0
   },
@@ -162,7 +162,7 @@ products_data = [
     preview_url: "https://via.placeholder.com/400x300/06b6d4/ffffff?text=3D+Characters",
     download_url: "https://example.com/downloads/3d-characters.zip",
     tags: ["3d", "characters", "low-poly", "rigged", "unity"],
-    status: "deleted", # Sản phẩm bị từ chối
+    status: "deleted", 
     average_rating: 0.0,
     reviews_count: 0
   },
@@ -201,7 +201,7 @@ products_data = [
     preview_url: "https://via.placeholder.com/400x300/ec4899/ffffff?text=Landing+Page",
     download_url: "https://example.com/downloads/landing-page.zip",
     tags: ["landing-page", "conversion", "seo-friendly", "testimonials", "forms"],
-    status: "moderated", # Sản phẩm đang chờ kiểm duyệt
+    status: "moderated", 
     average_rating: 0.0,
     reviews_count: 0
   },
@@ -227,7 +227,7 @@ products_data = [
     preview_url: "https://via.placeholder.com/400x300/22c55e/ffffff?text=WordPress+Theme",
     download_url: "https://example.com/downloads/wordpress-theme.zip",
     tags: ["wordpress", "blog", "minimal", "seo-friendly", "fast-loading"],
-    status: "deleted", # Sản phẩm tạm ngưng
+    status: "deleted", 
     average_rating: 4.2,
     reviews_count: 14
   },
@@ -265,16 +265,15 @@ products_data.each do |product_data|
   
   # Debug info
   unless category
-    puts "⚠️  Category '#{product_data[:category]}' not found for product: #{product_data[:title]}"
+    puts "Category '#{product_data[:category]}' not found for product: #{product_data[:title]}"
     next
   end
   
   unless seller
-    puts "⚠️  Seller '#{product_data[:seller_email]}' not found for product: #{product_data[:title]}"
+    puts "Seller '#{product_data[:seller_email]}' not found for product: #{product_data[:title]}"
     next
   end
   
-  # CÁCH 1: Truyền tất cả attributes vào create! (RECOMMENDED)
   product = Product.create!(
     title: product_data[:title],
     description: product_data[:description],
@@ -289,14 +288,14 @@ products_data.each do |product_data|
     reviews_count: product_data[:reviews_count]
   )
   
-  puts "✓ Created product: #{product.title} (ID: #{product.id})"
+  puts "Created product: #{product.title} (ID: #{product.id})"
 rescue ActiveRecord::RecordInvalid => e
-  puts "✗ Validation failed for product: #{product_data[:title]}"
+  puts "Validation failed for product: #{product_data[:title]}"
   puts "  Errors: #{e.record.errors.full_messages.join(', ')}"
 rescue StandardError => e
-  puts "✗ Failed to create product: #{product_data[:title]}"
-  puts "  Error: #{e.message}"
-  puts "  Backtrace: #{e.backtrace.first(3).join("\n")}"
+  puts "Failed to create product: #{product_data[:title]}"
+  puts "Error: #{e.message}"
+  puts "Backtrace: #{e.backtrace.first(3).join("\n")}"
 end
 
 puts "Mock data created successfully!"

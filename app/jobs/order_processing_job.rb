@@ -22,7 +22,7 @@ class OrderProcessingJob < ApplicationJob
   private
 
   def process_payment(order)
-    sleep(2) # Giả lập việc xử lý
+    sleep(2) 
     success = rand > 0.15
 
     if success

@@ -1,6 +1,6 @@
 class Api::V1::OrdersController < Api::V1::BaseController
   before_action :authenticate_user!
-  before_action :set_order, only: [:show, :update, :retry_payment, :refund]
+  before_action :set_order, only: [:show, :update, :retry_payment]
   skip_before_action :verify_authenticity_token
 
   def index
@@ -51,7 +51,6 @@ class Api::V1::OrdersController < Api::V1::BaseController
     ActiveRecord::Base.transaction do
       if @order.save
         create_order_items_from_cart(cart)
-        @order.start_processing! if @order.may_start_processing?
         OrderProcessingJob.perform_later(@order.id)
         cart.cart_items.destroy_all
 
@@ -88,7 +87,6 @@ class Api::V1::OrdersController < Api::V1::BaseController
 
     begin
       @order.retry_payment!
-      @order.start_processing! if @order.may_start_processing?
       OrderProcessingJob.perform_later(@order.id)
 
       render json: {
@@ -97,25 +95,6 @@ class Api::V1::OrdersController < Api::V1::BaseController
       }
     rescue AASM::InvalidTransition => e
       render json: { error: 'Unable to retry payment at this time' }, status: :unprocessable_entity
-    end
-  end
-
-  def refund
-    authorize @order, :update?
-
-    unless @order.can_be_refunded? && @order.may_refund?
-      return render json: { error: 'This order cannot be refunded' }, status: :unprocessable_entity
-    end
-
-    begin
-      @order.refund!
-
-      render json: {
-        message: 'Order refunded successfully',
-        order: OrderSerializer.new(@order).as_json
-      }
-    rescue AASM::InvalidTransition => e
-      render json: { error: 'Unable to refund order at this time' }, status: :unprocessable_entity
     end
   end
 
