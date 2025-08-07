@@ -21,9 +21,7 @@
           </div>
         </div>
         <script>
-          setTimeout(function() {
-            window.location.reload();
-          }, 5000);
+          setTimeout(() => window.location.reload(), 5000);
         </script>
       <% elsif @order.paid? %>
         <div class="alert mb-4" role="alert">
@@ -49,6 +47,9 @@
                   <th>Product</th>
                   <th class="text-end">Price</th>
                   <th class="text-end">Download</th>
+                  <% if @order.paid? %>
+                    <th class="text-end">Review</th>
+                  <% end %>
                 </tr>
               </thead>
               <tbody>
@@ -85,12 +86,32 @@
                         </span>
                       <% end %>
                     </td>
+                    <% if @order.paid? %>
+                      <td class="text-end align-middle">
+                        <% existing_review = Review.find_by(buyer: current_user, product: item.product) %>
+                        <% if existing_review %>
+                          <span class="badge bg-success mb-1 d-block">Reviewed</span>
+                          <div class="text-warning small">
+                            <% existing_review.rating.times do %>
+                              <i class="fas fa-star"></i>
+                            <% end %>
+                            <% (5 - existing_review.rating).times do %>
+                              <i class="far fa-star"></i>
+                            <% end %>
+                          </div>
+                        <% else %>
+                          <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#reviewModal<%= item.product.id %>" data-action="create">
+                            <i class="fas fa-star me-1"></i> Review
+                          </button>
+                        <% end %>
+                      </td>
+                    <% end %>
                   </tr>
                 <% end %>
               </tbody>
               <tfoot class="table-active">
                 <tr>
-                  <th colspan="2" class="text-end">Total:</th>
+                  <th colspan="<%= @order.paid? ? 3 : 2 %>" class="text-end">Total:</th>
                   <th class="text-end"><%= number_to_currency(@order.total_amount) %></th>
                 </tr>
               </tfoot>
@@ -126,7 +147,7 @@
             <% if @order.payments.any? %>
               <dt class="col-sm-5">Payment:</dt>
               <dd class="col-sm-7">
-                <% latest_payment = @order.payments.order(:created_at).last %>
+                <% latest_payment = @order.payments.order(created_at: :desc).last %>
                 <span class="badge <%= latest_payment.status == 'paid' ? 'bg-success' : latest_payment.status == 'pending' ? 'bg-warning' : 'bg-danger' %>">
                   <%= latest_payment.status.humanize %>
                 </span>
@@ -146,7 +167,6 @@
         </div>
       </div>
       
-      <!-- Action Buttons based on state -->
       <% if @order.failed? && policy(@order).retry_payment? %>
         <div class="card shadow-sm border-danger mt-4">
           <div class="card-body text-center">
@@ -164,7 +184,6 @@
                           class: 'btn btn-primary', data: { turbo_method: :patch } do %>
                 <i class="fas fa-redo me-1"></i> Retry Payment
               <% end %>
-
               <%= link_to cart_path, class: 'btn btn-outline-secondary' do %>
                 <i class="fas fa-shopping-cart me-1"></i> Back to Cart
               <% end %>
@@ -188,14 +207,13 @@
         </div>
       <% end %>
       
-      <!-- Payment History -->
       <% if @order.payments.count > 1 %>
         <div class="card shadow-sm mt-4">
           <div class="card-header bg-light">
             <h6 class="mb-0">Payment History</h6>
           </div>
           <div class="card-body">
-            <% @order.payments.order(:created_at).each do |payment| %>
+            <% @order.payments.order(created_at: :desc).each do |payment| %>
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <div>
                   <span class="badge <%= payment.status == 'paid' ? 'bg-success' : payment.status == 'pending' ? 'bg-warning' : 'bg-danger' %>">
@@ -216,3 +234,345 @@
     </div>
   </div>
 </div>
+
+<% if @order.paid? %>
+  <% @order_items.each do |item| %>
+    <div class="modal fade" id="reviewModal<%= item.product.id %>" tabindex="-1" aria-labelledby="reviewModalLabel<%= item.product.id %>" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="reviewModalLabel<%= item.product.id %>">
+              <span class="create-title">Write a Review</span>
+              <span class="edit-title" style="display: none;">Edit Your Review</span>
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          
+          <%= form_with model: Review.new, url: reviews_path, local: true, html: { class: 'review-form', id: "reviewForm#{item.product.id}" } do |form| %>
+            <div class="modal-body">
+              <%= form.hidden_field :product_id, value: item.product.id %>
+              <%= form.hidden_field :order_id, value: @order.id %>
+              
+              <div class="d-flex align-items-center mb-3 p-3 bg-light rounded">
+                <% if item.product.preview_image.attached? %>
+                  <%= image_tag item.product.preview_image.variant(resize_to_limit: [50, 50]), class: 'img-thumbnail me-3', style: 'width: 50px; height: 50px; object-fit: cover;' %>
+                <% else %>
+                  <div class="bg-secondary d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                    <i class="fas fa-image text-white"></i>
+                  </div>
+                <% end %>
+                <div>
+                  <h6 class="mb-0"><%= item.product.title %></h6>
+                  <small class="text-muted"><%= item.product.category&.name || 'Uncategorized' %></small>
+                </div>
+              </div>
+              
+              <fieldset class="mb-3">
+                <legend class="form-label fw-bold">Rating</legend>
+                <div class="rating-input d-flex align-items-center" data-product-id="<%= item.product.id %>">
+                  <% 5.times do |i| %>
+                    <label class="star-label text-muted me-1" style="font-size: 1.5rem; cursor: pointer;">
+                      <input type="radio"
+                            name="review[rating]"
+                            value="<%= i + 1 %>"
+                            class="d-none rating-radio"
+                            id="star<%= i + 1 %>_<%= item.product.id %>" />
+                      <i class="far fa-star"></i>
+                    </label>
+                  <% end %>
+                  <span class="ms-2 text-muted rating-text">Select a rating</span>
+                </div>
+                <small class="form-text text-muted">Click on the stars to rate this product</small>
+              </fieldset>
+              
+              <div class="mb-3">
+                <%= form.label :comment, class: 'form-label fw-bold' %>
+                <%= form.text_area :comment, class: 'form-control', rows: 4, placeholder: 'Share your experience with this product...' %>
+                <small class="form-text text-muted">Optional: Tell other customers about your experience</small>
+              </div>
+            </div>
+            
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">
+                <span class="create-text">Submit Review</span>
+                <span class="edit-text" style="display: none;">Update Review</span>
+              </button>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+
+<style>
+.rating-input .star-label {
+  color: #6c757d;
+  transition: color 0.2s ease;
+}
+
+.rating-input .star-label:hover,
+.rating-input .star-label.active {
+  color: #ffc107;
+}
+
+.rating-input .star-label:hover .fa-star,
+.rating-input .star-label.active .fa-star {
+  font-weight: 900;
+}
+</style>
+
+<script>
+document.addEventListener('turbo:load', initializeRating);
+document.addEventListener('DOMContentLoaded', initializeRating);
+
+let ratingInitialized = false;
+
+function initializeRating() {
+  // Prevent double initialization
+  if (ratingInitialized) {
+    console.log('Rating already initialized, skipping...');
+    return;
+  }
+  
+  console.log('Initializing rating system...');
+  
+  // Wait a bit for DOM to be fully ready
+  setTimeout(() => {
+    // Initialize rating inputs
+    document.querySelectorAll('.rating-input').forEach(ratingContainer => {
+      const productId = ratingContainer.dataset.productId;
+      console.log('Processing rating container for product:', productId);
+      
+      // Use input[type="radio"] selector instead of class
+      const stars = ratingContainer.querySelectorAll('.star-label');
+      const radios = ratingContainer.querySelectorAll('input[type="radio"]');
+      const ratingText = ratingContainer.querySelector('.rating-text');
+      const ratingLabels = ['Terrible', 'Poor', 'Average', 'Good', 'Excellent'];
+
+      console.log('Found elements:', {
+        stars: stars.length,
+        radios: radios.length,
+        ratingText: !!ratingText
+      });
+
+      if (!radios.length || !stars.length || !ratingText) {
+        console.warn(`Invalid rating container setup for product ${productId}:`, {
+          radios: radios.length,
+          stars: stars.length,
+          ratingText: !!ratingText,
+          html: ratingContainer.innerHTML
+        });
+        return;
+      }
+
+      console.log(`Rating container for ${productId} initialized successfully`);
+
+      // Update star display based on current selection
+      const updateStarDisplay = () => {
+        const checkedRadio = ratingContainer.querySelector('input[type="radio"]:checked');
+        const checkedIndex = checkedRadio ? Array.from(radios).indexOf(checkedRadio) : -1;
+
+        stars.forEach((star, i) => {
+          const isActive = i <= checkedIndex;
+          star.classList.toggle('active', isActive);
+          const iconElement = star.querySelector('i');
+          if (iconElement) {
+            iconElement.className = isActive ? 'fas fa-star' : 'far fa-star';
+          }
+          star.style.color = isActive ? '#ffc107' : '#6c757d';
+        });
+
+        ratingText.textContent = checkedIndex >= 0 ? ratingLabels[checkedIndex] : 'Select a rating';
+      };
+
+      // Initialize display
+      updateStarDisplay();
+
+      // Handle star clicks
+      stars.forEach((star, index) => {
+        // Remove existing listeners to prevent duplication
+        star.removeEventListener('click', star.clickHandler);
+        star.removeEventListener('mouseenter', star.hoverHandler);
+        
+        star.clickHandler = (e) => {
+          e.preventDefault();
+          console.log(`Star ${index + 1} clicked for product ${productId}`);
+          
+          if (index < radios.length) {
+            radios[index].checked = true;
+            updateStarDisplay();
+          }
+        };
+
+        star.hoverHandler = () => {
+          stars.forEach((s, i) => {
+            const shouldHighlight = i <= index;
+            s.classList.toggle('active', shouldHighlight);
+            const iconElement = s.querySelector('i');
+            if (iconElement) {
+              iconElement.className = shouldHighlight ? 'fas fa-star' : 'far fa-star';
+            }
+            s.style.color = shouldHighlight ? '#ffc107' : '#6c757d';
+          });
+          ratingText.textContent = ratingLabels[index];
+        };
+
+        star.addEventListener('click', star.clickHandler);
+        star.addEventListener('mouseenter', star.hoverHandler);
+      });
+
+      // Reset on mouse leave
+      ratingContainer.removeEventListener('mouseleave', ratingContainer.leaveHandler);
+      ratingContainer.leaveHandler = updateStarDisplay;
+      ratingContainer.addEventListener('mouseleave', ratingContainer.leaveHandler);
+    });
+
+    // Handle modal show events
+    document.querySelectorAll('[data-bs-target^="#reviewModal"]').forEach(trigger => {
+      // Remove existing listener to prevent duplication
+      trigger.removeEventListener('click', trigger.clickHandler);
+      
+      trigger.clickHandler = (e) => {
+        console.log('Modal trigger clicked:', trigger.dataset.bsTarget);
+        
+        const modalId = trigger.dataset.bsTarget;
+        const modal = document.querySelector(modalId);
+        
+        if (!modal) {
+          console.error(`Modal not found: ${modalId}`);
+          return;
+        }
+        
+        // Small delay to ensure modal is shown
+        setTimeout(() => {
+          const action = trigger.dataset.action || 'create';
+          const form = modal.querySelector('.review-form');
+          const ratingContainer = modal.querySelector('.rating-input');
+          
+          if (!form) {
+            console.error(`Form not found in modal ${modalId}`);
+            return;
+          }
+          
+          if (!ratingContainer) {
+            console.error(`Rating container not found in modal ${modalId}`);
+            return;
+          }
+          
+          const stars = ratingContainer.querySelectorAll('.star-label');
+          const radios = ratingContainer.querySelectorAll('input[type="radio"]');
+          const ratingText = ratingContainer.querySelector('.rating-text');
+
+          console.log('Modal elements found:', {
+            stars: stars.length,
+            radios: radios.length,
+            ratingText: !!ratingText
+          });
+
+          if (!radios.length || !stars.length || !ratingText) {
+            console.warn(`Invalid modal setup for ${modalId}:`, {
+              form: !!form,
+              ratingContainer: !!ratingContainer,
+              stars: stars.length,
+              radios: radios.length,
+              ratingText: !!ratingText
+            });
+            return;
+          }
+
+          console.log(`Modal ${modalId} setup completed successfully`);
+
+          const createTitle = modal.querySelector('.create-title');
+          const editTitle = modal.querySelector('.edit-title');
+          const createText = modal.querySelector('.create-text');
+          const editText = modal.querySelector('.edit-text');
+
+          if (action === 'edit') {
+            const reviewId = trigger.dataset.reviewId;
+            const rating = parseInt(trigger.dataset.rating);
+            const comment = trigger.dataset.comment || '';
+
+            // Update modal titles and buttons
+            if (createTitle && editTitle) {
+              createTitle.style.display = 'none';
+              editTitle.style.display = 'inline';
+            }
+            if (createText && editText) {
+              createText.style.display = 'none';
+              editText.style.display = 'inline';
+            }
+
+            // Update form for PATCH
+            form.action = `/reviews/${reviewId}`;
+            let methodInput = form.querySelector('input[name="_method"]');
+            if (!methodInput) {
+              methodInput = document.createElement('input');
+              methodInput.type = 'hidden';
+              methodInput.name = '_method';
+              methodInput.value = 'patch';
+              form.appendChild(methodInput);
+            }
+
+            // Set rating and comment
+            if (rating >= 1 && rating <= radios.length) {
+              radios[rating - 1].checked = true;
+            }
+            const commentTextarea = form.querySelector('textarea[name="review[comment]"]');
+            if (commentTextarea) {
+              commentTextarea.value = comment;
+            }
+          } else {
+            // Reset for create
+            if (createTitle && editTitle) {
+              createTitle.style.display = 'inline';
+              editTitle.style.display = 'none';
+            }
+            if (createText && editText) {
+              createText.style.display = 'inline';
+              editText.style.display = 'none';
+            }
+            
+            form.action = '/reviews';
+            const methodInput = form.querySelector('input[name="_method"]');
+            if (methodInput) methodInput.remove();
+
+            radios.forEach(radio => radio.checked = false);
+            const commentTextarea = form.querySelector('textarea[name="review[comment]"]');
+            if (commentTextarea) {
+              commentTextarea.value = '';
+            }
+          }
+
+          // Update star display after setting form
+          const updateStarDisplay = () => {
+            const checkedRadio = ratingContainer.querySelector('input[type="radio"]:checked');
+            const checkedIndex = checkedRadio ? Array.from(radios).indexOf(checkedRadio) : -1;
+            const ratingLabels = ['Terrible', 'Poor', 'Average', 'Good', 'Excellent'];
+
+            stars.forEach((s, i) => {
+              const isActive = i <= checkedIndex;
+              s.classList.toggle('active', isActive);
+              const iconElement = s.querySelector('i');
+              if (iconElement) {
+                iconElement.className = isActive ? 'fas fa-star' : 'far fa-star';
+              }
+              s.style.color = isActive ? '#ffc107' : '#6c757d';
+            });
+
+            ratingText.textContent = checkedIndex >= 0 ? ratingLabels[checkedIndex] : 'Select a rating';
+          };
+          
+          updateStarDisplay();
+        }, 100);
+      };
+      
+      trigger.addEventListener('click', trigger.clickHandler);
+    });
+
+    ratingInitialized = true;
+    console.log('Rating system fully initialized');
+  }, 100);
+}
+</script>

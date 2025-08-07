@@ -1,0 +1,76 @@
+<!-- app/views/reviews/_form.html.erb -->
+<div class="review-form-container">
+  <h5 class="mb-3">Write a Review</h5>
+  
+  <%= form_with(model: review, local: true, class: 'review-form') do |form| %>
+    <%= form.hidden_field :product_id, value: product.id %>
+    <%= form.hidden_field :order_id, value: order&.id %>
+    
+    <div class="mb-3">
+      <%= form.label :rating, class: 'form-label fw-bold' %>
+      <div class="star-rating">
+        <% (1..5).each do |i| %>
+          <input type="radio" name="review[rating]" value="<%= i %>" id="star<%= i %>" class="star-input">
+          <label for="star<%= i %>" class="star-label">
+            <i class="fas fa-star"></i>
+          </label>
+        <% end %>
+      </div>
+      <small class="form-text text-muted">Click on stars to rate</small>
+    </div>
+    
+    <div class="mb-3">
+      <%= form.label :comment, class: 'form-label fw-bold' %>
+      <%= form.text_area :comment, class: 'form-control', rows: 4, 
+                         placeholder: 'Share your experience with this product...' %>
+    </div>
+    
+    <div class="d-flex gap-2">
+      <%= form.submit 'Submit Review', class: 'btn btn-primary' %>
+      <button type="button" class="btn btn-secondary" onclick="toggleReviewForm()">Cancel</button>
+    </div>
+  <% end %>
+</div>
+
+<style>
+.review-form-container {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+.star-rating {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  margin: 0.5rem 0;
+}
+
+.star-input {
+  display: none;
+}
+
+.star-label {
+  font-size: 1.5rem;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 0 0.1rem;
+}
+
+.star-label:hover,
+.star-label:hover ~ .star-label,
+.star-input:checked ~ .star-label {
+  color: #ffc107;
+}
+
+.star-rating:hover .star-label {
+  color: #ddd;
+}
+
+.star-rating:hover .star-label:hover,
+.star-rating:hover .star-label:hover ~ .star-label {
+  color: #ffc107;
+}
+</style>

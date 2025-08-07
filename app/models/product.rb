@@ -13,6 +13,7 @@ class Product < ApplicationRecord
   belongs_to :category
   has_many :cart_items
   has_many :reviews, dependent: :destroy
+  has_many :reviewers, through: :reviews, source: :buyer
   has_many :order_items, dependent: :destroy
 
   has_one_attached :video
@@ -27,11 +28,36 @@ class Product < ApplicationRecord
   after_create_commit :generate_thumbnail_if_video
   after_update_commit :generate_thumbnail_if_video_changed
   after_save :store_urls
-  
+
   enum status: { active: 'active', moderated: 'moderated', deleted: 'deleted' }
   validates :title, :price, :status, presence: true
   validates :price, numericality: { greater_than_or_equal_to: 0 }
 
+  # 🔍 Review-related methods
+  def average_rating
+    return 0 if reviews.count == 0
+    reviews.average(:rating).round(1)
+  end
+
+  def reviews_count
+    reviews.count
+  end
+
+  def rating_distribution
+    (1..5).map do |rating|
+      {
+        rating: rating,
+        count: reviews.where(rating: rating).count,
+        percentage: reviews.count > 0 ? (reviews.where(rating: rating).count.to_f / reviews.count * 100).round : 0
+      }
+    end.reverse
+  end
+
+  def has_reviews?
+    reviews.count > 0
+  end
+
+  # 📷 Media helpers
   def thumbnail 
     return nil unless preview_image.attached?
     preview_image.variant(resize_to_limit: [300, 300]).processed
@@ -69,7 +95,6 @@ class Product < ApplicationRecord
   def downloadable_by?(user)
     return true if price.zero?
     return false unless user.present?
-
     return true if user == seller
 
     user.orders.paid.joins(:order_items).where(order_items: { product_id: id }).exists?

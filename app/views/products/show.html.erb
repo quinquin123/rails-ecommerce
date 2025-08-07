@@ -245,35 +245,104 @@
           </div>
         </div>
         
-        <!-- Product Meta -->
-        <div class="p-3 mb-4 rounded product-meta bg-light">
-          <div class="row">
-            <div class="mb-2 col-md-6">
-              <div class="meta-item d-flex align-items-center">
-                <i class="fas fa-tag text-primary me-2"></i>
-                <span><strong>Category:</strong> <%= @product.category&.name || 'Uncategorized' %></span>
+        <!-- Product Rating & Meta -->
+        <div class="product-rating-meta mb-4">
+          <!-- Rating Summary -->
+          <% if @product.reviews_count > 0 %>
+            <div class="rating-summary p-3 mb-3 bg-light rounded d-flex align-items-center justify-content-between">
+              <div class="rating-left d-flex align-items-center">
+                <div class="overall-score me-3 text-center">
+                  <div class="score-number fs-2 fw-bold text-primary">
+                    <%= @product.average_rating || 0 %>
+                  </div>
+                  <div class="score-stars">
+                    <% (@product.average_rating || 0).to_i.times do %>
+                      <i class="fas fa-star text-warning"></i>
+                    <% end %>
+                    <% (5 - (@product.average_rating || 0).to_i).times do %>
+                      <i class="far fa-star text-warning"></i>
+                    <% end %>
+                  </div>
+                </div>
+                <div class="rating-info">
+                  <h6 class="mb-1 fw-semibold">
+                    <%= pluralize(@product.reviews_count, 'customer review') %>
+                  </h6>
+                  <small class="text-muted">
+                    <i class="fas fa-verified-check me-1"></i>
+                    All reviews from verified purchases
+                  </small>
+                </div>
+              </div>
+              <div class="rating-right">
+                <a href="#reviews" class="btn btn-outline-primary btn-sm" onclick="showReviewsTab()">
+                  <i class="fas fa-comments me-1"></i>
+                  Read Reviews
+                </a>
               </div>
             </div>
-            <div class="mb-2 col-md-6">
-              <div class="meta-item d-flex align-items-center">
-                <i class="fas fa-user text-success me-2"></i>
-                <span><strong>Seller:</strong> <%= @product.seller&.name || @product.seller&.email || 'Unknown Seller' %></span>
+          <% else %>
+            <div class="no-rating p-3 mb-3 bg-light rounded text-center">
+              <div class="no-rating-stars mb-2">
+                <% 5.times do %>
+                  <i class="far fa-star text-muted"></i>
+                <% end %>
               </div>
+              <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                No reviews yet - Be the first to review!
+              </small>
             </div>
-            <div class="mb-2 col-md-6">
-              <div class="meta-item d-flex align-items-center">
-                <i class="fas fa-calendar text-info me-2"></i>
-                <span><strong>Added:</strong> <%= @product.created_at.strftime("%B %d, %Y") %></span>
+          <% end %>
+
+          <!-- Product Meta Information -->
+          <div class="p-3 rounded product-meta bg-light">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="meta-item d-flex align-items-center">
+                  <div class="meta-icon me-3">
+                    <i class="fas fa-tag text-primary"></i>
+                  </div>
+                  <div class="meta-content">
+                    <small class="text-muted d-block">Category</small>
+                    <span class="fw-semibold"><%= @product.category&.name || 'Uncategorized' %></span>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="mb-2 col-md-6">
-              <div class="meta-item d-flex align-items-center">
-                <i class="fas fa-eye text-warning me-2"></i>
-                <span><strong>Status:</strong> 
-                  <span class="badge bg-<%= @product.status == 'active' ? 'success' : 'warning' %>">
-                    <%= @product.status.humanize %>
-                  </span>
-                </span>
+              <div class="col-md-6">
+                <div class="meta-item d-flex align-items-center">
+                  <div class="meta-icon me-3">
+                    <i class="fas fa-user text-success"></i>
+                  </div>
+                  <div class="meta-content">
+                    <small class="text-muted d-block">Seller</small>
+                    <span class="fw-semibold"><%= @product.seller&.name || @product.seller&.email || 'Unknown Seller' %></span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="meta-item d-flex align-items-center">
+                  <div class="meta-icon me-3">
+                    <i class="fas fa-calendar text-info"></i>
+                  </div>
+                  <div class="meta-content">
+                    <small class="text-muted d-block">Published</small>
+                    <span class="fw-semibold"><%= @product.created_at.strftime("%B %d, %Y") %></span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="meta-item d-flex align-items-center">
+                  <div class="meta-icon me-3">
+                    <i class="fas fa-download text-warning"></i>
+                  </div>
+                  <div class="meta-content">
+                    <small class="text-muted d-block">Downloads</small>
+                    <span class="fw-semibold">
+                      <%= @product.downloadable_asset.attached? ? 'Available' : 'Not Available' %>
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -377,6 +446,116 @@
       </div>
     </div>
   </div>
+
+  <!-- Product Reviews Section -->
+  <div class="row mt-5">
+    <div class="col-12">
+      <div class="product-reviews-wrapper">
+        <!-- Reviews with Tabs Layout -->
+        <div class="product-tabs">
+          <ul class="nav nav-tabs nav-fill" id="productTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" 
+                      type="button" role="tab" aria-controls="description" aria-selected="true">
+                <i class="fas fa-align-left me-2"></i>Description
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" 
+                      type="button" role="tab" aria-controls="reviews" aria-selected="false">
+                <i class="fas fa-star me-2"></i>Reviews 
+                <span class="badge bg-primary ms-1">
+                  <%= @product.reviews_count || 0 %>
+                </span>
+              </button>
+            </li>
+            <% if @product.downloadable_asset.attached? %>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" 
+                        type="button" role="tab" aria-controls="details" aria-selected="false">
+                  <i class="fas fa-info-circle me-2"></i>File Details
+                </button>
+              </li>
+            <% end %>
+          </ul>
+          
+          <div class="tab-content mt-4" id="productTabsContent">
+            <!-- Description Tab -->
+            <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+              <div class="description-content p-4 bg-white border rounded">
+                <% if @product.description.present? %>
+                  <%= simple_format(@product.description) %>
+                <% else %>
+                  <p class="text-muted text-center py-4">
+                    <i class="fas fa-file-text fa-2x mb-3 d-block"></i>
+                    No description provided for this product.
+                  </p>
+                <% end %>
+              </div>
+            </div>
+            
+            <!-- Reviews Tab -->
+            <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+              <%= render 'reviews/reviews', product: @product %>
+            </div>
+            
+            <!-- File Details Tab -->
+            <% if @product.downloadable_asset.attached? %>
+              <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
+                <div class="file-details-content p-4 bg-white border rounded">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <h5 class="mb-3">
+                        <i class="fas fa-file-alt me-2 text-primary"></i>File Information
+                      </h5>
+                      <ul class="list-unstyled">
+                        <li class="mb-2">
+                          <strong>Filename:</strong> <%= @product.downloadable_asset.filename %>
+                        </li>
+                        <li class="mb-2">
+                          <strong>Size:</strong> <%= number_to_human_size(@product.downloadable_asset.byte_size) %>
+                        </li>
+                        <li class="mb-2">
+                          <strong>Type:</strong> <%= @product.downloadable_asset.content_type %>
+                        </li>
+                        <li class="mb-2">
+                          <strong>Added:</strong> <%= @product.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+                        </li>
+                      </ul>
+                    </div>
+                    <div class="col-md-6">
+                      <h5 class="mb-3">
+                        <i class="fas fa-download me-2 text-success"></i>Download Information
+                      </h5>
+                      <ul class="list-unstyled">
+                        <li class="mb-2">
+                          <strong>Price:</strong> 
+                          <span class="<%= @product.price.zero? ? 'text-success' : 'text-primary' %>">
+                            <%= @product.price.zero? ? 'FREE' : number_to_currency(@product.price) %>
+                          </span>
+                        </li>
+                        <li class="mb-2">
+                          <strong>Access:</strong> 
+                          <% if user_signed_in? && @product.downloadable_by?(current_user) %>
+                            <span class="text-success">✓ Available for download</span>
+                          <% else %>
+                            <span class="text-warning">Purchase required</span>
+                          <% end %>
+                        </li>
+                        <li class="mb-2">
+                          <strong>Format:</strong> Digital download
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   
   <!-- Back Navigation -->
   <div class="pt-4 mt-5 back-navigation border-top">
@@ -399,6 +578,92 @@
 </div>
 
 <style>
+  .rating-summary {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+  }
+
+  .overall-score {
+    text-align: center;
+    min-width: 80px;
+  }
+
+  .score-number {
+    line-height: 1;
+    color: #0d6efd !important;
+  }
+
+  .score-stars {
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+  }
+
+  .rating-info h6 {
+    color: #495057;
+    margin-bottom: 0.25rem;
+  }
+
+  .no-rating {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+  }
+
+  .no-rating-stars {
+    font-size: 1.2rem;
+  }
+
+  .product-meta {
+    background: rgba(102, 126, 234, 0.05) !important;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    border-radius: 12px;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+  }
+
+  .meta-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(13, 110, 253, 0.1);
+    border-radius: 8px;
+    font-size: 1.1rem;
+  }
+
+  .meta-content small {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .meta-content span {
+    font-size: 0.95rem;
+    color: #495057;
+  }
+
+  @media (max-width: 768px) {
+    .rating-summary {
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+    }
+    
+    .rating-left {
+      justify-content: center;
+    }
+    
+    .overall-score {
+      margin-right: 0 !important;
+      margin-bottom: 1rem;
+    }
+  }
   .product-detail {
     padding: 2rem;
   }
@@ -508,6 +773,21 @@
 </style>
 
 <script>
+  function showReviewsTab() {
+    // Scroll to reviews section
+    const reviewsSection = document.querySelector('.product-reviews-wrapper');
+    if (reviewsSection) {
+      reviewsSection.scrollIntoView({ behavior: 'smooth' });
+      
+      // Switch to reviews tab after a short delay
+      setTimeout(() => {
+        const reviewsTab = document.getElementById('reviews-tab');
+        if (reviewsTab) {
+          reviewsTab.click();
+        }
+      }, 500);
+    }
+  }
   function showMedia(type) {
     const videoSection = document.querySelector('.product-video-section');
     const imageSection = document.getElementById('imageSection');
