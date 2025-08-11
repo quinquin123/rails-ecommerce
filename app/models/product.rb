@@ -22,8 +22,8 @@ class Product < ApplicationRecord
   has_one_attached :video_thumbnail
 
   validate :validate_media_presence
-  validate :validate_video_format, if: -> { video.attached? }
-  validate :validate_image_format, if: -> { preview_image.attached? }
+  #validate :validate_video_format, if: -> { video.attached? }
+  #validate :validate_image_format, if: -> { preview_image.attached? }
 
   after_create_commit :generate_thumbnail_if_video
   after_update_commit :generate_thumbnail_if_video_changed
