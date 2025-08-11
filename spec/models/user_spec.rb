@@ -55,7 +55,7 @@ RSpec.describe User, type: :model do
     context "when the user has purchased the product" do
       it "returns true" do
         product = create(:product, price: 100)
-        order = create(:order, buyer: user, status: "success")
+        order = create(:order, buyer: user, aasm_state: "paid", total_amount: 100, payment_method: "credit_card")
         create(:order_item, order: order, product: product)
 
         expect(user.has_purchased?(product)).to be true

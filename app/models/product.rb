@@ -21,9 +21,9 @@ class Product < ApplicationRecord
   has_one_attached :downloadable_asset
   has_one_attached :video_thumbnail
 
-  #validate :validate_media_presence
-  #validate :validate_video_format, if: -> { video.attached? }
-  #validate :validate_image_format, if: -> { preview_image.attached? }
+  validate :validate_media_presence
+  validate :validate_video_format, if: -> { video.attached? }
+  validate :validate_image_format, if: -> { preview_image.attached? }
 
   after_create_commit :generate_thumbnail_if_video
   after_update_commit :generate_thumbnail_if_video_changed
@@ -33,7 +33,7 @@ class Product < ApplicationRecord
   validates :title, :price, :status, presence: true
   validates :price, numericality: { greater_than_or_equal_to: 0 }
 
-  # 🔍 Review-related methods
+  # Review-related methods
   def average_rating
     return 0 if reviews.count == 0
     reviews.average(:rating).round(1)
@@ -57,7 +57,7 @@ class Product < ApplicationRecord
     reviews.count > 0
   end
 
-  # 📷 Media helpers
+  # Media helpers
   def thumbnail 
     return nil unless preview_image.attached?
     preview_image.variant(resize_to_limit: [300, 300]).processed

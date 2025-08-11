@@ -1,5 +1,5 @@
 class User < ApplicationRecord
-  self.table_name = 'quynh_schema.users'
+  #self.table_name = 'quynh_schema.users'
   devise :database_authenticatable, :registerable,
           :recoverable, :rememberable, :validatable,
           :jwt_authenticatable, jwt_revocation_strategy: JwtDenylist
@@ -18,7 +18,7 @@ class User < ApplicationRecord
 
   def has_purchased?(product)
     return false unless product.price > 0
-    orders.successful.joins(:order_items)
+    orders.paid_orders.joins(:order_items)
           .where(order_items: { product_id: product.id })
           .exists?
   end

@@ -17,7 +17,6 @@ Rails.application.routes.draw do
     member do
       get 'download'
     end
-    # Reviews có thể được tạo từ product page
     resources :reviews, only: [:new, :create]
   end
   
@@ -32,14 +31,12 @@ Rails.application.routes.draw do
     end
   end
 
-  # Reviews routes - chính
   resources :reviews, except: [:new] do
-    # Không cần nested vì reviews có thể được access độc lập
   end
 
   resources :product_imports, only: [:new, :create]
   
-  resources :order_items do  # Sửa orders_items thành order_items
+  resources :order_items do  
     member do
       post :download
     end

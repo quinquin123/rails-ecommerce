@@ -80,7 +80,7 @@ RSpec.describe Product, type: :model do
 
     it 'returns true if user purchased product' do
       product = create(:product, seller: seller, category: category)
-      order = create(:order, buyer: buyer, status: "success")
+      order = create(:order, buyer: buyer, aasm_state: "paid", total_amount: 100, payment_method: "credit_card")
       create(:order_item, order: order, product: product)
 
       expect(product.downloadable_by?(buyer)).to be true

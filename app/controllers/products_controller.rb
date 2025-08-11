@@ -21,7 +21,7 @@ class ProductsController < ApplicationController
       status: 'active'
     ))
     authorize @product
-
+    attach_media(@product)
     begin
       if @product.save
         handle_new_attachments
@@ -139,5 +139,9 @@ class ProductsController < ApplicationController
       end
     end  
   end
-
+  def attach_media(product)
+    product.preview_image.attach(params[:product][:preview_image]) if params[:product][:preview_image].present?
+    product.downloadable_asset.attach(params[:product][:downloadable_asset]) if params[:product][:downloadable_asset].present?
+    product.video.attach(params[:product][:video]) if params[:product][:video].present?
+  end
 end

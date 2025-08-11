@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe "Products", type: :request do
   let(:user) { create(:user) }
+  let(:seller) { create(:user, :seller) }
   let(:other_user) { create(:user) }
   let(:category) { create(:category) }
   let(:product) { create(:product, seller: user, category: category) }
@@ -18,10 +19,8 @@ RSpec.describe "Products", type: :request do
         expect(response).to be_successful
       end
 
-      # Note: assigns() is not available in request specs
-      # You would need to test the actual rendered content instead
       it "displays products" do
-        product # create the product
+        product 
         get products_path
         expect(response.body).to include(product.title)
       end
@@ -60,7 +59,7 @@ RSpec.describe "Products", type: :request do
 
   describe "GET /products/new" do
     context "when user is signed in" do
-      before { sign_in user }
+      before { sign_in seller }
 
       it "returns a successful response" do
         get new_product_path
@@ -69,26 +68,34 @@ RSpec.describe "Products", type: :request do
 
       it "displays new product form" do
         get new_product_path
-        expect(response.body).to include('New Product') # or whatever your form contains
+        expect(response.body).to include('New Product')
       end
     end
 
     context "when user is not signed in" do
+
       it "redirects to sign in" do
         get new_product_path
-        expect(response).to redirect_to(new_user_session_path)
+        expect(response.location).to include("/users/sign_in")
       end
     end
   end
 
   describe "POST /products" do
+    let(:image_file) do
+      Rack::Test::UploadedFile.new(
+        Rails.root.join("spec/fixtures/files/image.jpg"),
+        'image/jpeg'
+      )
+    end
     let(:valid_attributes) do
       {
         title: "Test Product",
         description: "Test Description",
         price: 10.99,
         category_id: category.id,
-        tags: "tag1, tag2, tag3"
+        tags: ["tag1", "tag2", "tag3"],
+        preview_image: image_file
       }
     end
 
@@ -105,9 +112,18 @@ RSpec.describe "Products", type: :request do
 
       context "with valid parameters" do
         it "creates a new Product" do
-          expect {
-            post products_path, params: { product: valid_attributes }
-          }.to change(Product, :count).by(1)
+          post products_path, params: { product: valid_attributes }
+
+          created_product = Product.order(created_at: :desc).first
+
+          if created_product.nil?
+            puts "❌ Product was not created."
+            puts "Response body:\n#{response.body}"
+          else
+            puts "⚠️ Validation errors: #{created_product.errors.full_messages}"
+          end
+
+          expect(Product.count).to eq(1)
         end
 
         it "assigns the current user as seller" do
@@ -135,11 +151,9 @@ RSpec.describe "Products", type: :request do
 
         context "with file attachments" do
           let(:image_file) do
-            # Create a temporary file for testing
             Rack::Test::UploadedFile.new(
-              StringIO.new("fake image content"),
-              'image/jpeg',
-              original_filename: 'test.jpg'
+              Rails.root.join("spec/fixtures/files/image.jpg"),
+              'image/jpeg'
             )
           end
 
@@ -238,10 +252,10 @@ RSpec.describe "Products", type: :request do
 
         context "with media removal" do
           before do
-            # Attach an image first
+            image_path = Rails.root.join("spec/fixtures/files/image.jpg")
             image_blob = ActiveStorage::Blob.create_and_upload!(
-              io: StringIO.new("fake image content"),
-              filename: 'test.jpg',
+              io: File.open(image_path, 'rb'),
+              filename: 'image.jpg',
               content_type: 'image/jpeg'
             )
             product.preview_image.attach(image_blob)
@@ -263,9 +277,8 @@ RSpec.describe "Products", type: :request do
         context "with new attachments" do
           let(:new_image) do
             Rack::Test::UploadedFile.new(
-              StringIO.new("new image content"),
-              'image/jpeg',
-              original_filename: 'new_test.jpg'
+              Rails.root.join("spec/fixtures/files/test.jpg"),
+              'image/jpeg'
             )
           end
 
