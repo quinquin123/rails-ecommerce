@@ -21,7 +21,7 @@ class Product < ApplicationRecord
   has_one_attached :downloadable_asset
   has_one_attached :video_thumbnail
 
-  validate :validate_media_presence
+  #validate :validate_media_presence
   #validate :validate_video_format, if: -> { video.attached? }
   #validate :validate_image_format, if: -> { preview_image.attached? }
 
