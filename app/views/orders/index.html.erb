@@ -13,7 +13,7 @@
       <% end %>
       
       <% %w[pending paid failed].each do |status| %>
-        <% count = policy_scope(Order).where(aasm_state: status).count %>
+        <% count = policy_scope(Order).where(status: status).count %>
         <% if count > 0 %>
           <%= link_to orders_path(status: status), 
                       class: "btn #{'btn-primary' if params[:status] == status} #{'btn-outline-primary' unless params[:status] == status}" do %>
@@ -34,9 +34,9 @@
                 Order #<%= order.id.to_s.first(8) %>...
               </small>
               
-              <span class="badge <%= status_badge_class(order.aasm_state) %>">
-                <i class="<%= order_status_icon(order.aasm_state) %> me-1"></i>
-                <%= order.aasm_state.humanize %>
+              <span class="badge <%= status_badge_class(order.status) %>">
+                <i class="<%= order_status_icon(order.status) %> me-1"></i>
+                <%= order.status.humanize %>
               </span>
             </div>
             
@@ -92,7 +92,7 @@
               </div>
               
               <!-- Status-specific messages -->
-              <% case order.aasm_state %>
+              <% case order.status %>
               <% when 'pending' %>
                 <div class="alert alert-info alert-sm py-2 mb-3">
                   <i class="fas fa-clock me-1"></i>

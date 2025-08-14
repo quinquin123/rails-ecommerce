@@ -21,7 +21,7 @@ class ProductsController < ApplicationController
       status: 'active'
     ))
     authorize @product
-    attach_media(@product)
+    attach_media(@product) 
     begin
       if @product.save
         handle_new_attachments
@@ -31,6 +31,7 @@ class ProductsController < ApplicationController
       end
     rescue => e
       Rails.logger.error "Create error: #{e.message}"
+      Rails.logger.debug "❌ Product errors: #{@product.errors.full_messages}"
       @product.errors.add(:base, "An error occurred while creating the product.")
       render :new, status: :unprocessable_entity
     end

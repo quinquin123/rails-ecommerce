@@ -7,7 +7,7 @@ class Api::V1::OrdersController < Api::V1::BaseController
     @orders = policy_scope(Order).includes(:order_items, :products, :payments)
 
     if params[:status].present? && valid_status?(params[:status])
-      @orders = @orders.where(aasm_state: params[:status])
+      @orders = @orders.where(status: params[:status])
     end
 
     @orders = @orders.order(created_at: :desc)

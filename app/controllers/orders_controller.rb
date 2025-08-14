@@ -7,9 +7,9 @@ class OrdersController < ApplicationController
     @orders = policy_scope(Order).includes(:order_items, :products, :payments).order(created_at: :desc)
     authorize Order
     if params[:status].present? && %w[pending paid failed].include?(params[:status])
-      @orders = @orders.where(aasm_state: params[:status])
+      @orders = @orders.where(status: params[:status])
     end
-    @orders = Order.order(created_at: :desc).page(params[:page]).per(10)
+    @orders = @orders.page(params[:page]).per(10)
   end
   
   def show

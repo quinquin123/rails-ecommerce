@@ -27,7 +27,12 @@ class User < ApplicationRecord
 
   def set_default_role
     self.role ||= 'buyer'
-    self.status ||= 'active'
+    self.status = case role
+                    when 'seller'
+                      'pending_approval'
+                    else
+                      'active'
+                    end
   end
 
   def custom_email_validation

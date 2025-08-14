@@ -1,11 +1,11 @@
 # app/policies/review_policy.rb
 class ReviewPolicy < ApplicationPolicy
   def index?
-    true # Anyone can see reviews
+    true 
   end
 
   def show?
-    true # Anyone can see individual reviews
+    true
   end
 
   def new?
@@ -25,7 +25,7 @@ class ReviewPolicy < ApplicationPolicy
   end
 
   def destroy?
-    user&.buyer? && (record.buyer == user || user.admin?)
+    user&.admin? || (user&.buyer? && record.buyer == user)
   end
 
   private
@@ -33,10 +33,9 @@ class ReviewPolicy < ApplicationPolicy
   def can_review_product?
     return false unless record&.product
     
-    # User must have purchased the product in a paid order
     user.orders.joins(:order_items)
         .where(order_items: { product: record.product })
-        .where(aasm_state: 'paid').exists?
+        .where(status: 'paid').exists?
   end
 
   class Scope < Scope

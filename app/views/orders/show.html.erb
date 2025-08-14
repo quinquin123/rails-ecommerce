@@ -82,7 +82,7 @@
                         <span class="text-muted">No file</span>
                       <% else %>
                         <span class="text-muted badge bg-secondary">
-                          <%= @order.aasm_state.humanize %>
+                          <%= @order.status.humanize %>
                         </span>
                       <% end %>
                     </td>
@@ -136,8 +136,8 @@
             
             <dt class="col-sm-5">Status:</dt>
             <dd class="col-sm-7">
-              <span class="badge <%= status_badge_class(@order.aasm_state) %>">
-                <%= @order.aasm_state.humanize %>
+              <span class="badge <%= status_badge_class(@order.status) %>">
+                <%= @order.status.humanize %>
               </span>
             </dd>
             

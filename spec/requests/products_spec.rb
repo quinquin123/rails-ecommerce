@@ -108,43 +108,45 @@ RSpec.describe "Products", type: :request do
     end
 
     context "when user is signed in" do
-      before { sign_in user }
+      before { sign_in seller }
 
       context "with valid parameters" do
         it "creates a new Product" do
-          post products_path, params: { product: valid_attributes }
+          expect {
+            post products_path, params: { product: valid_attributes }, as: :multipart
+          }.to change(Product, :count).by(1)
 
-          created_product = Product.order(created_at: :desc).first
+          created_product = Product.last
 
-          if created_product.nil?
-            puts "❌ Product was not created."
-            puts "Response body:\n#{response.body}"
-          else
-            puts "⚠️ Validation errors: #{created_product.errors.full_messages}"
-          end
-
-          expect(Product.count).to eq(1)
+          expect(created_product.title).to eq("Test Product")
+          expect(created_product.preview_image).to be_attached
         end
 
         it "assigns the current user as seller" do
-          post products_path, params: { product: valid_attributes }
+          post products_path, params: { product: valid_attributes }, as: :multipart
           created_product = Product.last
-          expect(created_product.seller).to eq(user)
+          expect(created_product.seller).to eq(seller)
         end
 
         it "sets status to active" do
-          post products_path, params: { product: valid_attributes }
+          post products_path, params: { product: valid_attributes }, as: :multipart
           created_product = Product.last
           expect(created_product.status).to eq('active')
         end
 
         it "redirects to the created product" do
-          post products_path, params: { product: valid_attributes }
+          post products_path, params: { product: valid_attributes }, as: :multipart
+          if response.status != 302
+            puts "Response status: #{response.status}"
+            puts "Product errors: #{Product.last&.errors&.full_messages}"
+            puts "Response body: #{response.body[0..500]}" # First 500 chars
+          end
+          
           expect(response).to redirect_to(Product.last)
         end
 
         it "processes tags correctly" do
-          post products_path, params: { product: valid_attributes }
+          post products_path, params: { product: valid_attributes }, as: :multipart
           created_product = Product.last
           expect(created_product.tags).to eq(['tag1', 'tag2', 'tag3'])
         end
@@ -159,7 +161,7 @@ RSpec.describe "Products", type: :request do
 
           it "handles new attachments" do
             post products_path, params: { 
-              product: valid_attributes.merge(preview_image: image_file) 
+              product: valid_attributes.merge(preview_image: image_file), as: :multipart
             }
             created_product = Product.last
             expect(created_product.preview_image).to be_attached

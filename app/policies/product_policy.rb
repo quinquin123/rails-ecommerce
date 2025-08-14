@@ -1,12 +1,5 @@
 class ProductPolicy < ApplicationPolicy
-  class Scope
-    attr_reader :user, :scope
-
-    def initialize(user, scope)
-      @user = user
-      @scope = scope
-    end
-
+  class Scope < ApplicationPolicy::Scope
     def resolve
       if user.nil?
         scope.where(status: 'active')
@@ -25,29 +18,37 @@ class ProductPolicy < ApplicationPolicy
   end
 
   def show?
+    return false if user&.seller? && user.pending_approval?
     record.status == 'active' || user.admin? || (user.seller? && record.seller_id == user.id)
   end
 
   def create?
-    user.present? && (user.seller? || user.admin?)
+    return false unless user.present?
+    raise Errors::PendingApprovalError if user.seller? && user.pending_approval?
+    user.seller? || user.admin?
   end
 
   def update?
+    return false unless user.present?
+    raise Errors::PendingApprovalError if user.seller? && user.pending_approval?
     user.admin? || (user.seller? && record.seller_id == user.id)
   end
 
   def destroy?
+    return false unless user.present?
+    raise Errors::PendingApprovalError if user.seller? && user.pending_approval?
     user.admin? || (user.seller? && record.seller_id == user.id)
   end
 
   def moderate?
+    return false unless user.present?
     user.admin?
   end
 
   def download?
     return true if record.price.zero?
     return false unless user
-    user.orders.successful.joins(:order_items)
+    user.orders.paid_orders.joins(:order_items)
         .where(order_items: { product_id: record.id }).exists?
   end
 

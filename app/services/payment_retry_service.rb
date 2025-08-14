@@ -1,8 +1,9 @@
 class PaymentRetryService
   def self.call(user)
-    user.orders.pending.each do |order|
+    user.orders.pending_orders.each do |order|
       Rails.logger.info "Retrying payment for Order ##{order.id}"
 
+      #Payment result simulation
       success = [true, false].sample
 
       if success
