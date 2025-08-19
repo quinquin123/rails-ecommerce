@@ -60,6 +60,7 @@ class Order < ApplicationRecord
     order_items.each do |item|
       item.update!(download_expires_at: 1.year.from_now)
     end
+    update!(status: 'paid')
 
     Rails.logger.info "Order ##{id} marked as paid"
   end
@@ -69,6 +70,7 @@ class Order < ApplicationRecord
       status: 'failed',
       amount: total_amount
     )
+    update!(status: 'failed')
 
     Rails.logger.info "Order ##{id} payment failed"
   end

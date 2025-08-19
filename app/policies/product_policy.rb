@@ -40,9 +40,16 @@ class ProductPolicy < ApplicationPolicy
     user.admin? || (user.seller? && record.seller_id == user.id)
   end
 
-  def moderate?
-    return false unless user.present?
-    user.admin?
+  def approve?
+    user&.admin?
+  end
+
+  def reject?
+    user&.admin?
+  end
+
+  def restore?
+    user&.admin?
   end
 
   def download?

@@ -8,15 +8,4 @@ class Payment < ApplicationRecord
   scope :failed, -> { where(status: 'failed') }
   scope :processing, -> { where(status: 'pending') }
   
-  def successful?
-    status == 'paid'
-  end
-  
-  def failed?
-    status == 'failed'
-  end
-  
-  def processing?
-    status == 'pending'
-  end
 end

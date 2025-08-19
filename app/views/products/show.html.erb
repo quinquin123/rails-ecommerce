@@ -152,7 +152,7 @@
               </div>
             <% else %>
               <!-- Paid product - check purchase status -->
-              <% if user_signed_in? && @product.downloadable_by?(current_user) %>
+              <% if user_signed_in? && (@product.downloadable_by?(current_user) || current_user.admin?) %>
                 <div class="purchased-download">
                   <%= link_to rails_blob_path(@product.downloadable_asset, disposition: 'attachment'),
                             class: 'btn btn-success btn-lg w-100 mb-2 download-btn',
@@ -178,11 +178,6 @@
                       <i class="fas fa-cart-plus me-2"></i>
                       Purchase to Download (<%= number_to_currency(@product.price) %>)
                     <% end %>
-                  <% else %>
-                    <div class="mb-3 alert alert-info">
-                      <i class="fas fa-info-circle me-2"></i>
-                      Sign in to purchase and download this product
-                    </div>
                   <% end %>
                 </div>
               <% end %>
@@ -378,29 +373,25 @@
         <!-- Enhanced Product Actions -->
         <div class="product-actions">
           <% if user_signed_in? %>
-            <% if current_user != @product.seller %>
-              <!-- Buyer Actions -->
-              <div class="mb-3 buyer-actions">
-                <% if @product.price.zero? %>
-                <% else %>
-                  <%= button_to add_item_cart_path, 
-                              method: :post, 
-                              params: { product_id: @product.id }, 
-                              class: 'btn btn-primary btn-lg me-2 mb-2', 
-                              remote: true do %>
-                    <i class="fas fa-cart-plus me-2"></i>Add to Cart
+            <% if current_user.admin? %>
+              <!-- Admin Actions -->
+              <div class="mb-3 admin-actions">
+                <div class="flex-wrap gap-2 d-flex">
+                  <%= link_to edit_product_path(@product), class: 'btn btn-warning me-2 mb-2' do %>
+                    <i class="fas fa-edit me-2"></i>Edit Product
                   <% end %>
                   
-                  <% if @product.downloadable_asset.attached? %>
-                    <%= link_to rails_blob_path(@product.downloadable_asset, disposition: 'preview'),
-                                            target: '_blank',
-                                            class: 'btn btn-outline-secondary btn-lg mb-2' do %>
-                      <i class="fas fa-eye me-2"></i>Preview File
-                    <% end %>
+                  <%= link_to product_path(@product), 
+                      data: { 
+                        turbo_method: :delete,
+                        turbo_confirm: 'Are you sure you want to delete this product?' 
+                      }, 
+                      class: 'btn btn-danger mb-2' do %>
+                    <i class="fas fa-trash me-2"></i>Delete Product
                   <% end %>
-                <% end %>
+                </div>
               </div>
-            <% else %>
+            <% elsif current_user == @product.seller %>
               <!-- Seller Actions -->
               <div class="mb-3 seller-actions">
                 <div class="mb-3 alert alert-info">
@@ -421,6 +412,45 @@
                     <i class="fas fa-trash me-2"></i>Delete Product
                   <% end %>
                 </div>
+              </div>
+            <% elsif current_user.buyer? %>
+              <!-- Buyer Actions -->
+              <div class="mb-3 buyer-actions">
+                <% if @product.price.zero? %>
+                  <div class="mb-3 alert alert-success">
+                    <i class="fas fa-gift me-2"></i>
+                    This is a free product!
+                  </div>
+                  <%= button_to add_item_cart_path, 
+                              method: :post, 
+                              params: { product_id: @product.id }, 
+                              class: 'btn btn-success btn-lg me-2 mb-2', 
+                              remote: true do %>
+                    <i class="fas fa-download me-2"></i>Get Free Product
+                  <% end %>
+                <% else %>
+                  <%= button_to add_item_cart_path, 
+                              method: :post, 
+                              params: { product_id: @product.id }, 
+                              class: 'btn btn-primary btn-lg me-2 mb-2', 
+                              remote: true do %>
+                    <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                  <% end %>
+                <% end %>
+                
+                <% if @product.downloadable_asset.attached? %>
+                  <%= link_to rails_blob_path(@product.downloadable_asset, disposition: 'preview'),
+                              target: '_blank',
+                              class: 'btn btn-outline-secondary btn-lg mb-2' do %>
+                    <i class="fas fa-eye me-2"></i>Preview File
+                  <% end %>
+                <% end %>
+              </div>
+            <% else %>
+              <!-- Seller Role but not product owner -->
+              <div class="mb-3 alert alert-secondary">
+                <i class="fas fa-info-circle me-2"></i>
+                You are a seller but not the owner of this product
               </div>
             <% end %>
           <% else %>
@@ -536,7 +566,7 @@
                         </li>
                         <li class="mb-2">
                           <strong>Access:</strong> 
-                          <% if user_signed_in? && @product.downloadable_by?(current_user) %>
+                          <% if user_signed_in? && (@product.downloadable_by?(current_user) || current_user.admin?) %>
                             <span class="text-success">✓ Available for download</span>
                           <% else %>
                             <span class="text-warning">Purchase required</span>

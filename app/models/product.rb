@@ -27,11 +27,17 @@ class Product < ApplicationRecord
 
   after_create_commit :generate_thumbnail_if_video
   after_update_commit :generate_thumbnail_if_video_changed
-  after_save :store_urls
+  #after_save :store_urls
+  after_commit :store_urls
 
   enum status: { active: 'active', moderated: 'moderated', deleted: 'deleted' }
   validates :title, :price, :status, presence: true
   validates :price, numericality: { greater_than_or_equal_to: 0 }
+
+  scope :search_by, ->(query) {
+    sanitized_query = sanitize_sql_like(query.to_s.strip)
+    where("title ILIKE :q OR description ILIKE :q", q: "%#{sanitized_query}%")
+  }
 
   # Review-related methods
   def average_rating
@@ -53,10 +59,6 @@ class Product < ApplicationRecord
     end.reverse
   end
 
-  def has_reviews?
-    reviews.count > 0
-  end
-
   # Media helpers
   def thumbnail 
     return nil unless preview_image.attached?
@@ -74,7 +76,7 @@ class Product < ApplicationRecord
         url = if Rails.env.test?
                 "/rails/active_storage/blobs/#{preview_image.blob.key}/#{preview_image.blob.filename}"
               else
-                preview_image.url
+                Rails.application.routes.url_helpers.rails_blob_url(preview_image, host: default_host)
               end
         update_column(:preview_url, url)
       end
@@ -83,7 +85,7 @@ class Product < ApplicationRecord
         url = if Rails.env.test?
                 "/rails/active_storage/blobs/#{downloadable_asset.blob.key}/#{downloadable_asset.blob.filename}"
               else
-                downloadable_asset.url
+                Rails.application.routes.url_helpers.rails_blob_url(downloadable_asset, host: default_host)
               end
         update_column(:download_url, url)
       end
@@ -95,7 +97,7 @@ class Product < ApplicationRecord
   def downloadable_by?(user)
     return true if price.zero?
     return false unless user.present?
-    return true if user == seller
+    return true if user == seller 
 
     user.orders.paid.joins(:order_items).where(order_items: { product_id: id }).exists?
   end
@@ -143,13 +145,11 @@ class Product < ApplicationRecord
   end
   
   def validate_video_format
-    return unless video.attached?
     return if video.content_type.in?(%w[video/mp4 video/quicktime video/x-msvideo])
     errors.add(:video, "must be a MP4, MOV or AVI file")
   end
   
   def validate_image_format
-    return unless preview_image.attached?
     return if preview_image.content_type.in?(%w[image/jpeg image/png image/gif])
     errors.add(:preview_image, "must be a JPEG, PNG or GIF file")
   end

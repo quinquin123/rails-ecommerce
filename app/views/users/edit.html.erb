@@ -58,6 +58,40 @@
               <div class="invalid-feedback">Please provide a valid email address.</div>
             </div>
           </div>
+          
+          <!-- Password Section -->
+          <% if @user == current_user %>
+            <hr class="my-4">
+            <h6 class="text-muted mb-3">
+              <i class="fas fa-lock me-2"></i>
+              Change Password
+            </h6>
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <%= form.label :password, class: "form-label" do %>
+                  <i class="fas fa-key me-1"></i>
+                  New Password
+                <% end %>
+                <%= form.password_field :password, class: "form-control", 
+                    placeholder: "Enter new password (optional)", 
+                    autocomplete: "new-password" %>
+                <div class="form-text">Minimum 6 characters</div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <%= form.label :password_confirmation, class: "form-label" do %>
+                  <i class="fas fa-key me-1"></i>
+                  Confirm New Password
+                <% end %>
+                <%= form.password_field :password_confirmation, class: "form-control", 
+                    placeholder: "Confirm new password", 
+                    autocomplete: "new-password" %>
+                <div class="form-text">Must match the password above</div>
+                <div class="invalid-feedback">Passwords don't match</div>
+              </div>
+            </div>
+          <% end %>
 
           <!-- Admin Only Fields -->
           <% if current_user.admin? %>

@@ -9,17 +9,17 @@ class Review < ApplicationRecord
   validates :buyer_id, uniqueness: { scope: :product_id, message: "You can only review a product once" }
   validate :buyer_must_have_purchased_product
   
-  scope :recent, -> { order(created_at: :desc) }
-  scope :by_rating, ->(rating) { where(rating: rating) }
-  scope :with_comments, -> { where.not(comment: [nil, '']) }
+  #scope :recent, -> { order(created_at: :desc) }
+  #scope :by_rating, ->(rating) { where(rating: rating) }
+  #scope :with_comments, -> { where.not(comment: [nil, '']) }
   
-  def rating_stars
-    '★' * rating + '☆' * (5 - rating)
-  end
+  # def rating_stars
+  #   '★' * rating + '☆' * (5 - rating)
+  # end
   
-  def rating_percentage
-    (rating.to_f / 5 * 100).round
-  end
+  # def rating_percentage
+  #   (rating.to_f / 5 * 100).round
+  # end
 
   private
 
@@ -33,3 +33,4 @@ class Review < ApplicationRecord
     end
   end
 end
+

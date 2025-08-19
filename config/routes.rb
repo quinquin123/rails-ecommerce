@@ -16,6 +16,10 @@ Rails.application.routes.draw do
     end
     member do
       get 'download'
+      patch :approve
+      patch :reject
+      patch :restore
+      patch :delete
     end
     resources :reviews, only: [:new, :create]
   end
@@ -104,4 +108,8 @@ Rails.application.routes.draw do
   get 'reports/buyer', to: 'reports#buyer'
   get 'reports/seller', to: 'reports#seller'
   get 'reports/admin', to: 'reports#admin'
+
+  get '/profile', to: 'users#show', defaults: { id: 'current' }
+  get '/profile/edit', to: 'users#edit', defaults: { id: 'current' }
+  patch '/profile', to: 'users#update', defaults: { id: 'current' }
 end
