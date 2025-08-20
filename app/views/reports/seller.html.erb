@@ -5,7 +5,7 @@
       <div class="card-body">
         <p><strong>Total Earnings:</strong> <%= number_to_currency(@total_earnings) %></p>
         <p><strong>Total Sales:</strong> <%= @sales_count %></p>
-        <h3>Top 5 Products</h3>
+        <h3>Top 5 Products with the most Reviews</h3>
         <ul>
           <% @top_products.each do |product| %>
             <li><%= link_to product.title, product_path(product) %> (<%= product.reviews_count %> reviews)</li>

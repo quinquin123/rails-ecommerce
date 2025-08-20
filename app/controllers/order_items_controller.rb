@@ -8,7 +8,6 @@ class OrderItemsController < ApplicationController
       DownloadLog.create!(
         user: current_user,
         product: @order_item.product,
-        order: @order_item.order,
         downloaded_at: Time.current
       )
       redirect_to rails_blob_path(@order_item.product.downloadable_asset, disposition: 'attachment')

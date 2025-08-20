@@ -6,7 +6,8 @@ class ProductPolicy < ApplicationPolicy
       elsif user.admin?
         scope.all
       elsif user.seller?
-        scope.where(seller_id: user.id)
+        scope.where(status: 'active')
+              .or(scope.where(seller_id: user.id))
       else
         scope.where(status: 'active')
       end
@@ -34,7 +35,7 @@ class ProductPolicy < ApplicationPolicy
     user.admin? || (user.seller? && record.seller_id == user.id)
   end
 
-  def destroy?
+  def delete?
     return false unless user.present?
     raise Errors::PendingApprovalError if user.seller? && user.pending_approval?
     user.admin? || (user.seller? && record.seller_id == user.id)

@@ -5,6 +5,7 @@ class UsersController < ApplicationController
   def index
     @users = policy_scope(User)
     authorize User
+    @users = @users.page(params[:page]).per(10)
   end
 
   def show

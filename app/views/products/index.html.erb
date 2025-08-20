@@ -527,7 +527,9 @@
     <% end %>
   </div>
 <% end %>
-
+<div class="d-flex justify-content-center mt-4">
+  <%= paginate @products %>
+</div>
 <% if @products.empty? %>
   <div class="empty-state">
     <div class="empty-icon">

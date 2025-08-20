@@ -1,6 +1,6 @@
 class ProductsController < ApplicationController
   before_action :authenticate_user!, except: [:index, :show, :search]
-  before_action :set_product, only: [:show, :edit, :update, :destroy, :approve, :reject, :restore]
+  before_action :set_product, only: [:show, :edit, :update, :delete, :approve, :reject, :restore]
   
   def index
     @products = if user_signed_in? && current_user.admin?
@@ -12,6 +12,7 @@ class ProductsController < ApplicationController
     @products = @products.where(status: params[:status]) if params[:status].present? && current_user&.admin?
     @categories = Category.all
     authorize Product, :index?
+    @products = @products.page(params[:page]).per(12)
   end
 
   def show
@@ -69,11 +70,15 @@ class ProductsController < ApplicationController
     end
   end
 
-  def destroy
+  def delete
     authorize @product
     begin
-      @product.update(status: :deleted) # Soft delete by setting status to 'deleted'
-      redirect_to products_path, notice: 'Product deleted successfully.'
+      if @product.update_attribute(:status, 'deleted')
+        redirect_to products_path, notice: 'Product deleted successfully.'
+      else
+        Rails.logger.error "Reject errors: #{@product.errors.full_messages.join(', ')}"
+        redirect_to products_path, alert: 'Failed to deleted product.'
+      end
     rescue => e
       Rails.logger.error "Destroy error: #{e.message}"
       redirect_to products_path, alert: 'An error occurred while deleting the product.'
