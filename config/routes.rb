@@ -13,6 +13,7 @@ Rails.application.routes.draw do
   resources :products do
     collection do
       get :search
+      get :my_products
     end
     member do
       get 'download'
@@ -101,6 +102,7 @@ Rails.application.routes.draw do
   resources :users, only: [:index, :show, :edit, :update] do
     member do
       patch :approve
+      patch :refuse
       patch :block
     end
   end

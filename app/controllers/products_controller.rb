@@ -3,15 +3,24 @@ class ProductsController < ApplicationController
   before_action :set_product, only: [:show, :edit, :update, :delete, :approve, :reject, :restore]
   
   def index
-    @products = if user_signed_in? && current_user.admin?
-                  policy_scope(Product).all # Admins see all products, including moderated/deleted
-                else
-                  policy_scope(Product).where(status: 'active') # Non-admins see only active products
-                end
+    skip_policy_scope
+    authorize Product, :index?
+
+    scope_type = current_user&.admin? ? :all_products : :default
+    @products = ProductPolicy::Scope.new(current_user, Product, scope_type).resolve
     @products = @products.where(category_id: params[:category_id]) if params[:category_id].present?
     @products = @products.where(status: params[:status]) if params[:status].present? && current_user&.admin?
     @categories = Category.all
+    @products = @products.page(params[:page]).per(12)
+  end
+
+  def my_products
     authorize Product, :index?
+
+    scope = ProductPolicy::Scope.new(current_user, Product, :my_products)
+    @products = scope.resolve
+    @products = @products.where(category_id: params[:category_id]) if params[:category_id].present?
+    @categories = Category.all
     @products = @products.page(params[:page]).per(12)
   end
 

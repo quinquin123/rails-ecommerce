@@ -97,14 +97,12 @@
                           data: { turbo_method: :patch, turbo_confirm: "Are you sure you want to approve this user?" } do %>
                         <i class="fas fa-check"></i>
                       <% end %>
-                    <% end %>
-                    
-                    <% if user.status != 'blocked' && user != current_user %>
-                      <%= link_to block_user_path(user),
+                      
+                      <%= link_to refuse_user_path(user),
                           class: "btn btn-sm btn-outline-danger", 
-                          title: "Block User",
-                          data: { turbo_method: :patch, turbo_confirm: "Are you sure you want to block this user?" } do %>
-                        <i class="fas fa-ban"></i>
+                          title: "Refuse User",
+                          data: { turbo_method: :patch, turbo_confirm: "Are you sure you want to refuse this user?" } do %>
+                        <i class="fas fa-times"></i>
                       <% end %>
                     <% end %>
                   </div>

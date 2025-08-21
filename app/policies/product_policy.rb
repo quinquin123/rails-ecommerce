@@ -1,13 +1,24 @@
 class ProductPolicy < ApplicationPolicy
   class Scope < ApplicationPolicy::Scope
+    def initialize(user, scope, view_type = :default)
+      super(user, scope)
+      @view_type = view_type
+    end
+
     def resolve
-      if user.nil?
-        scope.where(status: 'active')
-      elsif user.admin?
-        scope.all
-      elsif user.seller?
-        scope.where(status: 'active')
-              .or(scope.where(seller_id: user.id))
+      case @view_type
+      when :my_products
+        user.seller? ? scope.where(seller_id: user.id) : scope.none
+      when :all_products
+        if user.nil?
+          scope.where(status: 'active')
+        elsif user.admin?
+          scope.all
+        elsif user.seller?
+          scope.where(status: 'active').or(scope.where(seller_id: user.id))
+        else
+          scope.where(status: 'active')
+        end
       else
         scope.where(status: 'active')
       end
@@ -42,6 +53,10 @@ class ProductPolicy < ApplicationPolicy
   end
 
   def approve?
+    user&.admin?
+  end
+
+  def refuse?
     user&.admin?
   end
 

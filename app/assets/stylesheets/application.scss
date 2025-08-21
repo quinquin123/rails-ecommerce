@@ -295,6 +295,8 @@ body::before {
 .nav-link[href*="orders"]:before { content: '📋 '; }
 .nav-link[href*="reports"]:before { content: '📊 '; }
 .nav-link[href*="users"]:before { content: '👥 '; }
+.nav-link[href*="profile"]:before { content: '👤 '; }
+
 .nav-link[href*="import"]:before { content: '📤 '; }
 .nav-link[href*="sign_in"]:before { content: '🔐 '; }
 .nav-link[href*="sign_up"]:before { content: '✨ '; }

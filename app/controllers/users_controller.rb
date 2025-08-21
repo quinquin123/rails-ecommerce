@@ -31,6 +31,12 @@ class UsersController < ApplicationController
     redirect_to users_path, notice: 'User approved successfully.'
   end
 
+  def refuse
+    authorize @user, :refuse?
+    @user.update(status: 'inactive')
+    redirect_to users_path, notice: 'User refused successfully'
+  end
+
   def block
     authorize @user, :block?
     @user.update(status: 'blocked')

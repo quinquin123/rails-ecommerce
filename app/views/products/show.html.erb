@@ -168,7 +168,7 @@
                     <i class="fas fa-lock me-2"></i>
                     Purchase required to download this file
                   </div>
-                  <% if user_signed_in? %>
+                  <% if user_signed_in? && current_user.buyer? %>
                     <%= button_to add_item_cart_path,
                               method: :post,
                               params: { product_id: @product.id },
@@ -342,17 +342,6 @@
             </div>
           </div>
         </div>
-        
-        <!-- Product Description -->
-        <div class="mb-4 product-description">
-          <h3 class="mb-3">
-            <i class="fas fa-align-left me-2 text-primary"></i>Description
-          </h3>
-          <div class="p-3 bg-white border rounded description-content">
-            <%= simple_format(@product.description.presence || "No description provided.") %>
-          </div>
-        </div>
-
         <div class="mb-4 product-tags">
           <h5 class="mb-2">
             <i class="fas fa-tags me-2 text-primary"></i>Tags
@@ -415,16 +404,16 @@
               </div>
             <% elsif current_user.buyer? %>
               <!-- Buyer Actions -->
-              <div class="mb-3 buyer-actions">
+              <div class="mb-3 d-flex flex-wrap gap-2 buyer-actions">
                 <% if @product.price.zero? %>
-                  <div class="mb-3 alert alert-success">
+                  <div class="alert w-100">
                     <i class="fas fa-gift me-2"></i>
                     This is a free product!
                   </div>
                   <%= button_to add_item_cart_path, 
                               method: :post, 
                               params: { product_id: @product.id }, 
-                              class: 'btn btn-success btn-lg me-2 mb-2', 
+                              class: 'btn btn-success btn-lg', 
                               remote: true do %>
                     <i class="fas fa-download me-2"></i>Get Free Product
                   <% end %>
@@ -432,7 +421,7 @@
                   <%= button_to add_item_cart_path, 
                               method: :post, 
                               params: { product_id: @product.id }, 
-                              class: 'btn btn-primary btn-lg me-2 mb-2', 
+                              class: 'btn btn-primary btn-lg', 
                               remote: true do %>
                     <i class="fas fa-cart-plus me-2"></i>Add to Cart
                   <% end %>
@@ -441,7 +430,7 @@
                 <% if @product.downloadable_asset.attached? %>
                   <%= link_to rails_blob_path(@product.downloadable_asset, disposition: 'preview'),
                               target: '_blank',
-                              class: 'btn btn-outline-secondary btn-lg mb-2' do %>
+                              class: 'btn btn-outline-secondary btn-lg' do %>
                     <i class="fas fa-eye me-2"></i>Preview File
                   <% end %>
                 <% end %>
@@ -512,7 +501,7 @@
           <div class="tab-content mt-4" id="productTabsContent">
             <!-- Description Tab -->
             <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
-              <div class="description-content p-4 bg-white border rounded">
+              <div class="description-content p-4">
                 <% if @product.description.present? %>
                   <%= simple_format(@product.description) %>
                 <% else %>
@@ -532,7 +521,7 @@
             <!-- File Details Tab -->
             <% if @product.downloadable_asset.attached? %>
               <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
-                <div class="file-details-content p-4 bg-white border rounded">
+                <div class="file-details-content p-4 bg-white">
                   <div class="row">
                     <div class="col-md-6">
                       <h5 class="mb-3">

@@ -56,6 +56,7 @@
                 <% @order_items.each do |item| %>
                   <tr>
                     <td>
+                    <%= link_to product_path(item.product), class: 'text-decoration-none text-dark' do %>
                       <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
                           <% if item.product.preview_image.attached? %>
@@ -71,6 +72,7 @@
                           <small class="text-muted"><%= item.product.category&.name || 'Uncategorized' %></small>
                         </div>
                       </div>
+                    <% end %>
                     </td>
                     <td class="text-end align-middle"><%= number_to_currency(item.price_at_purchase) %></td>
                     <td class="text-end align-middle">

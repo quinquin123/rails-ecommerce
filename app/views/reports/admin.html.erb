@@ -1,16 +1,694 @@
-<div class="row">
-  <div class="col-md-12">
-    <h1>Admin Report</h1>
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <p><strong>Total Revenue:</strong> <%= number_to_currency(@total_revenue) %></p>
-        <p><strong>Active Users:</strong> <%= @active_users %></p>
-        <p><strong>Pending Sellers:</strong> <%= @pending_sellers %></p>
-        <p><strong>Blocked User:</strong> <%= @blocked_user %></p>
-        <p><strong>Active Products:</strong> <%= @active_products %></p>
-        <p><strong>Moderated Products:</strong> <%= @moderated_products %></p>
-        <p><strong>Deleted Products:</strong> <%= @deleted_products %></p>
+<div class="admin-report-container">
+  <div class="report-header">
+    <h1>Admin Dashboard</h1>
+    <p class="report-date">Platform overview • <%= Date.current.strftime('%B %d, %Y') %></p>
+  </div>
+
+  <!-- Revenue Section -->
+  <div class="revenue-section">
+    <div class="revenue-card">
+      <div class="revenue-content">
+        <div class="revenue-icon">💰</div>
+        <div class="revenue-info">
+          <h2>Total Revenue</h2>
+          <div class="revenue-value"><%= number_to_currency(@total_revenue) %></div>
+          <p class="revenue-subtitle">Platform lifetime earnings</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Metrics Grid -->
+  <div class="metrics-grid">
+    <div class="metric-card users">
+      <div class="metric-icon">👥</div>
+      <h3>Active Users</h3>
+      <div class="metric-value"><%= @active_users %></div>
+      <div class="metric-trend positive">+12% this month</div>
+    </div>
+    
+    <div class="metric-card pending">
+      <div class="metric-icon">⏳</div>
+      <h3>Pending Sellers</h3>
+      <div class="metric-value"><%= @pending_sellers %></div>
+      <div class="metric-action">
+        <a href="#" class="action-link">Review Applications</a>
+      </div>
+    </div>
+    
+    <div class="metric-card blocked">
+      <div class="metric-icon">🚫</div>
+      <h3>Blocked Users</h3>
+      <div class="metric-value"><%= @blocked_user %></div>
+      <div class="metric-trend neutral">Monitoring</div>
+    </div>
+  </div>
+
+  <!-- Product Management Section -->
+  <div class="products-section">
+    <h2>Product Management</h2>
+    <div class="products-grid">
+      <div class="product-status-card active">
+        <div class="status-header">
+          <div class="status-icon">✅</div>
+          <h3>Active Products</h3>
+        </div>
+        <div class="status-number"><%= @active_products %></div>
+        <div class="status-bar">
+          <div class="status-fill" style="width: <%= @active_products > 0 ? (@active_products.to_f / (@active_products + @moderated_products + @deleted_products) * 100).round : 0 %>%"></div>
+        </div>
+        <p class="status-description">Live and selling</p>
+      </div>
+
+      <div class="product-status-card moderated">
+        <div class="status-header">
+          <div class="status-icon">⚠️</div>
+          <h3>Under Review</h3>
+        </div>
+        <div class="status-number"><%= @moderated_products %></div>
+        <div class="status-bar moderated-bar">
+          <div class="status-fill" style="width: <%= @moderated_products > 0 ? (@moderated_products.to_f / (@active_products + @moderated_products + @deleted_products) * 100).round : 0 %>%"></div>
+        </div>
+        <p class="status-description">Awaiting approval</p>
+        <% if @moderated_products > 0 %>
+          <a href="#" class="status-action">Review Now</a>
+        <% end %>
+      </div>
+
+      <div class="product-status-card deleted">
+        <div class="status-header">
+          <div class="status-icon">🗑️</div>
+          <h3>Removed</h3>
+        </div>
+        <div class="status-number"><%= @deleted_products %></div>
+        <div class="status-bar deleted-bar">
+          <div class="status-fill" style="width: <%= @deleted_products > 0 ? (@deleted_products.to_f / (@active_products + @moderated_products + @deleted_products) * 100).round : 0 %>%"></div>
+        </div>
+        <p class="status-description">Deleted products</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Platform Health -->
+  <div class="health-section">
+    <h2>Platform Health</h2>
+    <div class="health-grid">
+      <div class="health-card">
+        <h3>🎯 Content Quality</h3>
+        <div class="health-meter">
+          <div class="meter-fill good" style="width: <%= @active_products > 0 ? ((@active_products.to_f / (@active_products + @moderated_products)) * 100).round : 0 %>%"></div>
+        </div>
+        <p>
+          <% approval_rate = @active_products > 0 ? ((@active_products.to_f / (@active_products + @moderated_products)) * 100).round : 0 %>
+          <%= approval_rate %>% approval rate
+        </p>
+      </div>
+
+      <div class="health-card">
+        <h3>👤 User Management</h3>
+        <div class="health-meter">
+          <div class="meter-fill excellent" style="width: <%= @active_users > 0 ? ((@active_users.to_f / (@active_users + @blocked_user)) * 100).round : 0 %>%"></div>
+        </div>
+        <p>
+          <% user_health = @active_users > 0 ? ((@active_users.to_f / (@active_users + @blocked_user)) * 100).round : 0 %>
+          <%= user_health %>% healthy users
+        </p>
+      </div>
+
+      <div class="health-card">
+        <h3>🚀 Growth</h3>
+        <div class="health-stats">
+          <div class="stat">
+            <span class="stat-number"><%= @pending_sellers %></span>
+            <span class="stat-label">New applications</span>
+          </div>
+        </div>
+        <p>Platform expansion</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="actions-section">
+    <h2>Quick Actions</h2>
+    <div class="actions-grid">
+      <% if @pending_sellers > 0 %>
+        <div class="action-card urgent">
+          <div class="action-icon">🔍</div>
+          <h3>Review Sellers</h3>
+          <p><%= @pending_sellers %> applications waiting</p>
+          <a href="#" class="action-button">Review Now</a>
+        </div>
+      <% end %>
+
+      <% if @moderated_products > 0 %>
+        <div class="action-card important">
+          <div class="action-icon">📝</div>
+          <h3>Moderate Content</h3>
+          <p><%= @moderated_products %> products to review</p>
+          <a href="#" class="action-button">Moderate</a>
+        </div>
+      <% end %>
+
+      <div class="action-card">
+        <div class="action-icon">📊</div>
+        <h3>Analytics</h3>
+        <p>View detailed platform analytics</p>
+        <a href="#" class="action-button">View Reports</a>
+      </div>
+
+      <div class="action-card">
+        <div class="action-icon">⚙️</div>
+        <h3>Settings</h3>
+        <p>Manage platform configuration</p>
+        <a href="#" class="action-button">Configure</a>
       </div>
     </div>
   </div>
 </div>
+
+<style>
+  .admin-report-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+    min-height: 100vh;
+  }
+
+  .report-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 32px 0;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(245, 158, 11, 0.15);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .report-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #f59e0b 0%, #ef4444 50%, #8b5cf6 100%);
+  }
+
+  .report-header h1 {
+    color: #1c1917;
+    margin-bottom: 8px;
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .report-date {
+    color: #78716c;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  .revenue-section {
+    margin-bottom: 48px;
+  }
+
+  .revenue-card {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border-radius: 24px;
+    padding: 40px;
+    color: white;
+    box-shadow: 0 16px 48px rgba(245, 158, 11, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .revenue-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  }
+
+  .revenue-content {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .revenue-icon {
+    font-size: 4rem;
+    opacity: 0.9;
+  }
+
+  .revenue-info h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    opacity: 0.9;
+  }
+
+  .revenue-value {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .revenue-subtitle {
+    opacity: 0.8;
+    margin: 0;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  .metric-card {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+  }
+
+  .metric-card.users::before {
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  }
+
+  .metric-card.pending::before {
+    background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+  }
+
+  .metric-card.blocked::before {
+    background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+  }
+
+  .metric-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+  }
+
+  .metric-icon {
+    font-size: 2.5rem;
+    margin-bottom: 16px;
+  }
+
+  .metric-card h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+    margin-bottom: 12px;
+  }
+
+  .metric-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 12px;
+  }
+
+  .metric-trend {
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 12px;
+    display: inline-block;
+  }
+
+  .metric-trend.positive {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .metric-trend.neutral {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+
+  .action-link {
+    color: #f59e0b;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  .action-link:hover {
+    text-decoration: underline;
+  }
+
+  .products-section, .health-section, .actions-section {
+    margin-bottom: 48px;
+  }
+
+  .products-section h2, .health-section h2, .actions-section h2 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1c1917;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .product-status-card {
+    background: white;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    position: relative;
+  }
+
+  .product-status-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .status-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .status-icon {
+    font-size: 1.5rem;
+  }
+
+  .status-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
+  }
+
+  .status-number {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 16px;
+  }
+
+  .status-bar {
+    height: 8px;
+    background: #f3f4f6;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .status-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    border-radius: 4px;
+    transition: width 1s ease;
+  }
+
+  .moderated-bar .status-fill {
+    background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+  }
+
+  .deleted-bar .status-fill {
+    background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+  }
+
+  .status-description {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-bottom: 12px;
+  }
+
+  .status-action {
+    color: #f59e0b;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+    padding: 6px 12px;
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    display: inline-block;
+    transition: all 0.2s ease;
+  }
+
+  .status-action:hover {
+    background: #f59e0b;
+    color: white;
+    text-decoration: none;
+  }
+
+  .health-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .health-card {
+    background: white;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+
+  .health-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .health-card h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 20px;
+  }
+
+  .health-meter {
+    height: 12px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .meter-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 1s ease;
+  }
+
+  .meter-fill.excellent {
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  }
+
+  .meter-fill.good {
+    background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
+  }
+
+  .health-stats {
+    margin-bottom: 16px;
+  }
+
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #8b5cf6;
+  }
+
+  .stat-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  .health-card p {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0;
+  }
+
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .action-card {
+    background: white;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .action-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #6b7280 0%, #9ca3af 100%);
+  }
+
+  .action-card.urgent::before {
+    background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+  }
+
+  .action-card.important::before {
+    background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+  }
+
+  .action-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+  }
+
+  .action-icon {
+    font-size: 2.5rem;
+    margin-bottom: 16px;
+  }
+
+  .action-card h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 12px;
+  }
+
+  .action-card p {
+    color: #6b7280;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .action-button {
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-block;
+  }
+
+  .action-card.urgent .action-button {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  }
+
+  .action-card.important .action-button {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  }
+
+  .action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+    color: white;
+  }
+
+  @media (max-width: 768px) {
+    .admin-report-container {
+      padding: 16px;
+    }
+
+    .metrics-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .products-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .health-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .actions-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .report-header h1 {
+      font-size: 2rem;
+    }
+
+    .revenue-value {
+      font-size: 2.5rem;
+    }
+
+    .revenue-content {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .metric-value {
+      font-size: 2rem;
+    }
+
+    .status-number {
+      font-size: 2.5rem;
+    }
+  }
+
+  /* Animation for loading */
+  .admin-report-container * {
+    animation: slideInUp 0.6s ease-out;
+  }
+
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .metrics-grid .metric-card:nth-child(1) { animation-delay: 0.1s; }
+  .metrics-grid .metric-card:nth-child(2) { animation-delay: 0.2s; }
+  .metrics-grid .metric-card:nth-child(3) { animation-delay: 0.3s; }
+  .products-grid .product-status-card:nth-child(1) { animation-delay: 0.4s; }
+  .products-grid .product-status-card:nth-child(2) { animation-delay: 0.5s; }
+  .products-grid .product-status-card:nth-child(3) { animation-delay: 0.6s; }
+</style>

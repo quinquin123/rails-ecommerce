@@ -190,6 +190,12 @@
                 <i class="fas fa-check me-2"></i>
                 Approve User
               <% end %>
+              <%= link_to refuse_user_path(@user),
+                  class: "btn btn-secondary",
+                  data: { turbo_method: :patch, turbo_confirm: "Are you sure?" } do %>
+                <i class="fas fa-check me-2"></i>
+                Refuse User
+              <% end %>
             <% end %>
 
             <% if @user.status != 'blocked' && @user != current_user %>

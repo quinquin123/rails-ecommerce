@@ -15,7 +15,6 @@
     <% end %>
   </div>
 </div>
-
 <!-- Search Section -->
 <div class="search-section">
   <div class="search-container">
@@ -41,20 +40,6 @@
       </select>
       <i class="fas fa-chevron-down dropdown-icon"></i>
     </div>
-
-    <!-- Rating Filter Dropdown -->
-    <div class="rating-dropdown">
-      <select class="rating-select" id="ratingSelect">
-        <option value="">All Ratings</option>
-        <option value="5">⭐⭐⭐⭐⭐ (5 stars)</option>
-        <option value="4">⭐⭐⭐⭐ (4+ stars)</option>
-        <option value="3">⭐⭐⭐ (3+ stars)</option>
-        <option value="2">⭐⭐ (2+ stars)</option>
-        <option value="1">⭐ (1+ stars)</option>
-      </select>
-      <i class="fas fa-chevron-down dropdown-icon"></i>
-    </div>
-
     <% if user_signed_in? && current_user.admin? %>
       <!-- Status Dropdown -->
       <div class="status-dropdown">
@@ -91,7 +76,6 @@
           <th>Seller</th>
           <th>Category</th>
           <th>Price</th>
-          <th>Rating</th>
           <th>Status</th>
           <th>Created At</th>
           <th>Actions</th>
@@ -99,11 +83,7 @@
       </thead>
       <tbody id="productsTable">
         <% @products.each do |product| %>
-          <tr class="product-row" 
-              data-product-id="<%= product.id %>" 
-              data-category="<%= product.category&.id || '' %>" 
-              data-status="<%= product.status || 'moderated' %>"
-              data-rating="<%= product.average_rating || 0 %>">
+          <tr class="product-row" data-product-id="<%= product.id %>" data-category="<%= product.category&.id || '' %>" data-status="<%= product.status || 'moderated' %>">
             <td class="preview">
               <% if product.video_thumbnail.attached? %>
                 <%= image_tag product.video_thumbnail.variant(resize_to_limit: [100, 100]), class: 'preview-image' %>
@@ -123,21 +103,6 @@
             <td><%= product.seller&.name || 'Unknown' %></td>
             <td><%= product.category&.name || 'Uncategorized' %></td>
             <td>$<%= product.price %></td>
-            <td>
-              <div class="rating-display">
-                <% rating = product.average_rating || 0 %>
-                <% 5.times do |i| %>
-                  <% if i < rating.floor %>
-                    <i class="fas fa-star text-warning"></i>
-                  <% elsif i < rating && rating % 1 >= 0.5 %>
-                    <i class="fas fa-star-half-alt text-warning"></i>
-                  <% else %>
-                    <i class="far fa-star text-muted"></i>
-                  <% end %>
-                <% end %>
-                <span class="rating-value">(<%= sprintf('%.1f', rating) %>)</span>
-              </div>
-            </td>
             <td>
               <span class="status-badge status-<%= product.status %>">
                 <%= product.status.capitalize %>
@@ -177,14 +142,287 @@
       </tbody>
     </table>
   </div>
+  <style>
+  .page-header {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+  }
+
+  .page-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-subtitle {
+    color: #718096;
+    font-size: 1rem;
+  }
+
+  .search-section {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+
+  .search-container {
+    flex: 1;
+    display: flex;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    min-width: 300px;
+  }
+
+  .category-dropdown, .status-dropdown {
+    position: relative;
+    border-right: 1px solid #e2e8f0;
+  }
+
+  .category-select, .status-select {
+    appearance: none;
+    background: transparent;
+    border: none;
+    padding: 0.75rem 2rem 0.75rem 1rem;
+    font-size: 0.9rem;
+    color: #1a202c;
+    cursor: pointer;
+    min-width: 120px;
+  }
+
+  .dropdown-icon {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #718096;
+    font-size: 0.8rem;
+  }
+
+  .search-box {
+    flex: 1;
+    position: relative;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: none;
+    font-size: 0.9rem;
+    background: transparent;
+    outline: none;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #718096;
+  }
+
+  .products-table-container {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+  }
+
+  .products-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .products-table th, .products-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .products-table th {
+    background: #f7fafc;
+    font-weight: 600;
+    color: #1a202c;
+  }
+
+  .preview-image, .preview-video {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  .placeholder-image {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #edf2f7;
+    color: #718096;
+  }
+
+  .status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+  }
+
+  .status-moderated { background: #fefcbf; color: #b7791f; }
+  .status-active { background: #c6f6d5; color: #2f855a; }
+  .status-deleted { background: #fed7d7; color: #c53030; }
+
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #718096;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .search-container {
+      flex-direction: column;
+      min-width: auto;
+    }
+
+    .category-dropdown, .status-dropdown {
+      border-right: none;
+      border-bottom: 1px solid #e2e8f0;
+      width: 100%;
+    }
+
+    .category-select, .status-select {
+      width: 100%;
+    }
+
+    .products-table {
+      display: block;
+      overflow-x: auto;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const categorySelect = document.getElementById('categorySelect');
+    const statusSelect = document.getElementById('statusSelect');
+    const productsTable = document.getElementById('productsTable');
+    const productRows = document.querySelectorAll('.product-row');
+
+    function filterProducts() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const selectedCategory = categorySelect.value.toLowerCase();
+      const selectedStatus = statusSelect.value.toLowerCase();
+
+      productRows.forEach(row => {
+        const title = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+        const seller = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+        const description = row.querySelector('td:nth-child(4)')?.textContent.toLowerCase() || '';
+        const category = row.getAttribute('data-category');
+        const status = row.getAttribute('data-status').toLowerCase();
+
+        const matchesSearch = !searchTerm || 
+          title.includes(searchTerm) || 
+          seller.includes(searchTerm) || 
+          description.includes(searchTerm);
+        const matchesCategory = !selectedCategory || category === selectedCategory;
+        const matchesStatus = !selectedStatus || status === selectedStatus;
+
+        // Hide deleted products unless 'deleted' is selected
+        const showRow = matchesSearch && matchesCategory && (selectedStatus === 'deleted' ? status === 'deleted' : status !== 'deleted' && matchesStatus);
+
+        if (showRow) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      const visibleRows = Array.from(productRows).filter(row => row.style.display !== 'none');
+      updateEmptyState(visibleRows.length === 0);
+    }
+
+    function updateEmptyState(show) {
+      let emptyState = document.querySelector('.empty-state-filtered');
+      if (show && !emptyState) {
+        emptyState = document.createElement('div');
+        emptyState.className = 'empty-state empty-state-filtered';
+        emptyState.innerHTML = `
+          <div class="empty-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h3>No products found</h3>
+          <p>Try adjusting your search or filter criteria.</p>
+        `;
+        productsTable.parentNode.appendChild(emptyState);
+      } else if (!show && emptyState) {
+        emptyState.remove();
+      }
+    }
+
+    searchInput.addEventListener('input', filterProducts);
+    categorySelect.addEventListener('change', filterProducts);
+    statusSelect.addEventListener('change', filterProducts);
+    filterProducts(); // Initial filter to hide deleted products
+
+    // Flash messages for admin actions
+    document.querySelectorAll('.btn-success, .btn-warning, .btn-danger, .btn-info').forEach(button => {
+      button.addEventListener('ajax:success', (event) => {
+        const [data, status, xhr] = event.detail;
+        showFlashNotice('Action completed successfully!');
+        setTimeout(() => location.reload(), 1000); // Reload to reflect status changes
+      });
+      button.addEventListener('ajax:error', (event) => {
+        const [data, status, xhr] = event.detail;
+        showFlashAlert(data.error || 'Action failed.');
+      });
+    });
+
+    function showFlashNotice(message) {
+      const flash = document.createElement('div');
+      flash.className = 'alert alert-success flash-message';
+      flash.innerHTML = message;
+      document.body.appendChild(flash);
+      setTimeout(() => flash.remove(), 3000);
+    }
+
+    function showFlashAlert(message) {
+      const flash = document.createElement('div');
+      flash.className = 'alert alert-danger flash-message';
+      flash.innerHTML = message;
+      document.body.appendChild(flash);
+      setTimeout(() => flash.remove(), 3000);
+    }
+  });
+</script>
 <% else %>
   <!-- Products Grid -->
   <div class="products-grid" id="productsGrid">
     <% @products.each do |product| %>
-      <div class="product-card" 
-           data-product-id="<%= product.id %>" 
-           data-category="<%= product.category&.id || '' %>"
-           data-rating="<%= product.average_rating || 0 %>">
+      <div class="product-card" data-product-id="<%= product.id %>" data-category="<%= product.category&.id || '' %>">
         <div class="product-image">
           <!-- Prioritize video over image for display -->
           <% if product.video_thumbnail.attached? %>
@@ -223,30 +461,6 @@
           <p class="product-description">
             <%= truncate(product.description, length: 100) %>
           </p>
-          
-          <!-- Rating Display -->
-          <div class="product-rating">
-            <% rating = product.average_rating || 0 %>
-            <div class="stars">
-              <% 5.times do |i| %>
-                <% if i < rating.floor %>
-                  <i class="fas fa-star"></i>
-                <% elsif i < rating && rating % 1 >= 0.5 %>
-                  <i class="fas fa-star-half-alt"></i>
-                <% else %>
-                  <i class="far fa-star"></i>
-                <% end %>
-              <% end %>
-            </div>
-            <span class="rating-text">
-              <%= sprintf('%.1f', rating) %> 
-              <% if product.reviews_count && product.reviews_count > 0 %>
-                (<%= product.reviews_count %> reviews)
-              <% else %>
-                (No reviews)
-              <% end %>
-            </span>
-          </div>
           
           <div class="product-meta">
             <span class="product-category">
@@ -313,11 +527,9 @@
     <% end %>
   </div>
 <% end %>
-
 <div class="d-flex justify-content-center mt-4">
   <%= paginate @products %>
 </div>
-
 <% if @products.empty? %>
   <div class="empty-state">
     <div class="empty-icon">
@@ -334,6 +546,38 @@
 <% end %>
 
 <style>
+  .product-video {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    cursor: pointer;
+  }
+
+  .video-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 2rem;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+  }
+
+  .product-card:hover .video-indicator {
+    opacity: 1;
+  }
+
+  .product-media-type {
+    font-size: 0.8rem;
+    color: #666;
+  }
+
+  .product-card:hover .product-video {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+  }
   .page-header {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
@@ -386,7 +630,7 @@
     border: 2px solid rgba(0, 0, 0, 0.1);
     border-radius: 16px;
     overflow: hidden;
-    min-width: 500px;
+    min-width: 400px;
     transition: all 0.3s ease;
   }
   
@@ -395,12 +639,12 @@
     box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
   }
   
-  .category-dropdown, .rating-dropdown, .status-dropdown {
+  .category-dropdown {
     position: relative;
     border-right: 2px solid rgba(0, 0, 0, 0.1);
   }
   
-  .category-select, .rating-select, .status-select {
+  .category-select {
     appearance: none;
     background: transparent;
     border: none;
@@ -413,12 +657,24 @@
     font-weight: 500;
   }
   
-  .rating-select {
-    min-width: 160px;
-  }
-  
-  .category-select:focus, .rating-select:focus, .status-select:focus {
+  .category-select:focus {
     outline: none;
+  }
+
+  .category-dropdown, .status-dropdown {
+    position: relative;
+    border-right: 1px solid #e2e8f0;
+  }
+
+  .category-select, .status-select {
+    appearance: none;
+    background: transparent;
+    border: none;
+    padding: 0.75rem 2rem 0.75rem 1rem;
+    font-size: 0.9rem;
+    color: #1a202c;
+    cursor: pointer;
+    min-width: 120px;
   }
   
   .dropdown-icon {
@@ -432,9 +688,7 @@
     transition: transform 0.3s ease;
   }
   
-  .category-select:focus + .dropdown-icon,
-  .rating-select:focus + .dropdown-icon,
-  .status-select:focus + .dropdown-icon {
+  .category-select:focus + .dropdown-icon {
     transform: translateY(-50%) rotate(180deg);
   }
   
@@ -465,85 +719,7 @@
     color: #64748b;
     font-size: 1.1rem;
   }
-
-  /* Table styles */
-  .products-table-container {
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    overflow-x: auto;
-  }
-
-  .products-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .products-table th, .products-table td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #e2e8f0;
-  }
-
-  .products-table th {
-    background: #f7fafc;
-    font-weight: 600;
-    color: #1a202c;
-  }
-
-  .preview-image, .preview-video {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 4px;
-  }
-
-  .placeholder-image {
-    width: 100px;
-    height: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #edf2f7;
-    color: #718096;
-  }
-
-  .status-badge {
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-  }
-
-  .status-moderated { background: #fefcbf; color: #b7791f; }
-  .status-active { background: #c6f6d5; color: #2f855a; }
-  .status-deleted { background: #fed7d7; color: #c53030; }
-
-  .rating-display {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .rating-display .fas, .rating-display .far {
-    font-size: 0.9rem;
-  }
-
-  .rating-value {
-    font-size: 0.8rem;
-    color: #64748b;
-  }
-
-  .actions {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .btn-sm {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
-  }
   
-  /* Grid styles */
   .products-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -584,29 +760,6 @@
   
   .product-card:hover .product-image img {
     transform: scale(1.05);
-  }
-  
-  .product-video {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    cursor: pointer;
-  }
-
-  .video-indicator {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 2rem;
-    text-shadow: 0 0 10px rgba(0,0,0,0.5);
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
-  }
-
-  .product-card:hover .video-indicator {
-    opacity: 1;
   }
   
   .placeholder-image {
@@ -675,34 +828,6 @@
     line-height: 1.5;
     margin-bottom: 1rem;
   }
-
-  .product-rating {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    padding: 0.5rem 0;
-  }
-
-  .stars {
-    display: flex;
-    gap: 0.1rem;
-  }
-
-  .stars .fas, .stars .far {
-    color: #fbbf24;
-    font-size: 1rem;
-  }
-
-  .stars .far {
-    color: #d1d5db;
-  }
-
-  .rating-text {
-    font-size: 0.85rem;
-    color: #64748b;
-    font-weight: 500;
-  }
   
   .product-meta {
     display: flex;
@@ -710,12 +835,6 @@
     margin-bottom: 1rem;
     font-size: 0.85rem;
     color: #64748b;
-    flex-wrap: wrap;
-  }
-
-  .product-media-type {
-    font-size: 0.8rem;
-    color: #666;
   }
   
   .product-tags {
@@ -738,7 +857,11 @@
     display: flex;
     gap: 0.5rem;
     align-items: center;
-    flex-wrap: wrap;
+  }
+  
+  .btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
   }
   
   .empty-state {
@@ -814,170 +937,22 @@
       flex-direction: column;
     }
     
-    .category-dropdown, .rating-dropdown, .status-dropdown {
+    .category-dropdown {
       border-right: none;
       border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-      width: 100%;
     }
     
-    .category-select, .rating-select, .status-select {
+    .category-select {
       min-width: auto;
       width: 100%;
     }
-
-    .product-meta {
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .product-actions {
-      flex-direction: column;
-    }
+    
   }
 </style>
 
 <script>
+  // Add to Cart functionality
   document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    const categorySelect = document.getElementById('categorySelect');
-    const ratingSelect = document.getElementById('ratingSelect');
-    const statusSelect = document.getElementById('statusSelect');
-    const productsTable = document.getElementById('productsTable');
-    const productsGrid = document.getElementById('productsGrid');
-    const productRows = document.querySelectorAll('.product-row');
-    const productCards = document.querySelectorAll('.product-card');
-
-    function filterProducts() {
-      const searchTerm = searchInput.value.toLowerCase();
-      const selectedCategory = categorySelect.value.toLowerCase();
-      const selectedRating = parseFloat(ratingSelect.value) || 0;
-      const selectedStatus = statusSelect ? statusSelect.value.toLowerCase() : '';
-
-      // Filter table rows (admin view)
-      if (productRows.length > 0) {
-        productRows.forEach(row => {
-          const title = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-          const seller = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-          const description = row.querySelector('td:nth-child(4)')?.textContent.toLowerCase() || '';
-          const category = row.getAttribute('data-category');
-          const status = row.getAttribute('data-status').toLowerCase();
-          const rating = parseFloat(row.getAttribute('data-rating')) || 0;
-
-          const matchesSearch = !searchTerm || 
-            title.includes(searchTerm) || 
-            seller.includes(searchTerm) || 
-            description.includes(searchTerm);
-          const matchesCategory = !selectedCategory || category === selectedCategory;
-          const matchesRating = selectedRating === 0 || rating >= selectedRating;
-          const matchesStatus = !selectedStatus || status === selectedStatus;
-
-          // Hide deleted products unless 'deleted' is selected
-          const showRow = matchesSearch && matchesCategory && matchesRating && 
-            (selectedStatus === 'deleted' ? status === 'deleted' : status !== 'deleted' && matchesStatus);
-
-          if (showRow) {
-            row.style.display = '';
-          } else {
-            row.style.display = 'none';
-          }
-        });
-
-        const visibleRows = Array.from(productRows).filter(row => row.style.display !== 'none');
-        updateEmptyState(visibleRows.length === 0);
-      }
-
-      // Filter product cards (regular user view)
-      if (productCards.length > 0) {
-        productCards.forEach(card => {
-          const title = card.querySelector('.product-title').textContent.toLowerCase();
-          const description = card.querySelector('.product-description').textContent.toLowerCase();
-          const category = card.getAttribute('data-category');
-          const categoryName = card.querySelector('.product-category').textContent.toLowerCase();
-          const rating = parseFloat(card.getAttribute('data-rating')) || 0;
-          
-          // Check search term match
-          const matchesSearch = !searchTerm || 
-            title.includes(searchTerm) || 
-            description.includes(searchTerm);
-          
-          // Check category match
-          const matchesCategory = !selectedCategory || 
-            category === selectedCategory || 
-            categoryName.includes(selectedCategory);
-
-          // Check rating match
-          const matchesRating = selectedRating === 0 || rating >= selectedRating;
-          
-          // Show/hide card based on all criteria
-          if (matchesSearch && matchesCategory && matchesRating) {
-            card.style.display = 'block';
-            card.style.animation = 'fadeIn 0.3s ease';
-          } else {
-            card.style.display = 'none';
-          }
-        });
-        
-        // Check if no products are visible
-        const visibleCards = Array.from(productCards).filter(card => 
-          card.style.display !== 'none'
-        );
-        
-        // Update empty state if needed
-        updateEmptyState(visibleCards.length === 0);
-      }
-    }
-    
-    function updateEmptyState(show) {
-      let emptyState = document.querySelector('.empty-state-filtered');
-      
-      if (show && !emptyState) {
-        emptyState = document.createElement('div');
-        emptyState.className = 'empty-state empty-state-filtered';
-        emptyState.innerHTML = `
-          <div class="empty-icon">
-            <i class="fas fa-search"></i>
-          </div>
-          <h3>No products found</h3>
-          <p>Try adjusting your search, category, or rating filter criteria.</p>
-        `;
-        
-        // Add to appropriate container
-        const container = productsTable ? productsTable.parentNode : productsGrid.parentNode;
-        container.appendChild(emptyState);
-      } else if (!show && emptyState) {
-        emptyState.remove();
-      }
-    }
-    
-    // Event listeners
-    searchInput.addEventListener('input', filterProducts);
-    categorySelect.addEventListener('change', filterProducts);
-    ratingSelect.addEventListener('change', filterProducts);
-    if (statusSelect) {
-      statusSelect.addEventListener('change', filterProducts);
-    }
-    
-    // Initial filter to hide deleted products (admin view)
-    filterProducts();
-
-    // Video hover functionality
-    const videoCards = document.querySelectorAll('.product-card');
-    
-    videoCards.forEach(card => {
-      const video = card.querySelector('.product-video');
-      if (video) {
-        card.addEventListener('mouseenter', function() {
-          video.play().catch(e => console.log('Video play failed:', e));
-        });
-        
-        card.addEventListener('mouseleave', function() {
-          video.pause();
-          video.currentTime = 0;
-        });
-      }
-    });
-
-    // Add to Cart functionality
     document.querySelectorAll('.add-to-cart').forEach(button => {
       button.addEventListener('ajax:success', (event) => {
         const [data, status, xhr] = event.detail;
@@ -998,21 +973,6 @@
         const [data, status, xhr] = event.detail;
         showFlashAlert(data.error || 'Failed to add item to cart');
       });
-    });
-
-    // Flash messages for admin actions
-    document.querySelectorAll('.btn-success, .btn-warning, .btn-danger, .btn-info').forEach(button => {
-      if (!button.classList.contains('add-to-cart')) {
-        button.addEventListener('ajax:success', (event) => {
-          const [data, status, xhr] = event.detail;
-          showFlashNotice('Action completed successfully!');
-          setTimeout(() => location.reload(), 1000); // Reload to reflect status changes
-        });
-        button.addEventListener('ajax:error', (event) => {
-          const [data, status, xhr] = event.detail;
-          showFlashAlert(data.error || 'Action failed.');
-        });
-      }
     });
     
     function showFlashNotice(message) {
@@ -1036,6 +996,93 @@
         flash.remove();
       }, 3000);
     }
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const videoCards = document.querySelectorAll('.product-card');
+    
+    videoCards.forEach(card => {
+      const video = card.querySelector('.product-video');
+      if (video) {
+        card.addEventListener('mouseenter', function() {
+          video.play().catch(e => console.log('Video play failed:', e));
+        });
+        
+        card.addEventListener('mouseleave', function() {
+          video.pause();
+          video.currentTime = 0;
+        });
+      }
+    });
+  });
+  // Search and Filter functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const categorySelect = document.getElementById('categorySelect');
+    const productsGrid = document.getElementById('productsGrid');
+    const productCards = document.querySelectorAll('.product-card');
+    
+    // Combined search and filter function
+    function filterProducts() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const selectedCategory = categorySelect.value.toLowerCase();
+      
+      productCards.forEach(card => {
+        const title = card.querySelector('.product-title').textContent.toLowerCase();
+        const description = card.querySelector('.product-description').textContent.toLowerCase();
+        const category = card.getAttribute('data-category');
+        const categoryName = card.querySelector('.product-category').textContent.toLowerCase();
+        
+        // Check search term match
+        const matchesSearch = !searchTerm || 
+          title.includes(searchTerm) || 
+          description.includes(searchTerm);
+        
+        // Check category match
+        const matchesCategory = !selectedCategory || 
+          category === selectedCategory || 
+          categoryName.includes(selectedCategory);
+        
+        // Show/hide card based on both criteria
+        if (matchesSearch && matchesCategory) {
+          card.style.display = 'block';
+          card.style.animation = 'fadeIn 0.3s ease';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      
+      // Check if no products are visible
+      const visibleCards = Array.from(productCards).filter(card => 
+        card.style.display !== 'none'
+      );
+      
+      // Update empty state if needed
+      updateEmptyState(visibleCards.length === 0);
+    }
+    
+    function updateEmptyState(show) {
+      let emptyState = document.querySelector('.empty-state-filtered');
+      
+      if (show && !emptyState) {
+        emptyState = document.createElement('div');
+        emptyState.className = 'empty-state empty-state-filtered';
+        emptyState.innerHTML = `
+          <div class="empty-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h3>No products found</h3>
+          <p>Try adjusting your search criteria or category filter.</p>
+        `;
+        productsGrid.parentNode.appendChild(emptyState);
+      } else if (!show && emptyState) {
+        emptyState.remove();
+      }
+    }
+    
+    // Event listeners
+    searchInput.addEventListener('input', filterProducts);
+    categorySelect.addEventListener('change', filterProducts);
     
     // Button click animation
     document.querySelectorAll('.btn').forEach(btn => {
@@ -1048,30 +1095,6 @@
         }
       });
     });
-
-    // Filter button functionality
-    const filterBtn = document.getElementById('filterBtn');
-    if (filterBtn) {
-      filterBtn.addEventListener('click', function() {
-        // Toggle advanced filters or show filter summary
-        const hasFilters = searchInput.value || categorySelect.value || ratingSelect.value || (statusSelect && statusSelect.value);
-        
-        if (hasFilters) {
-          // Clear all filters
-          searchInput.value = '';
-          categorySelect.value = '';
-          ratingSelect.value = '';
-          if (statusSelect) statusSelect.value = '';
-          
-          filterProducts();
-          
-          this.innerHTML = '<i class="fas fa-filter me-2"></i>Filter';
-          showFlashNotice('All filters cleared!');
-        } else {
-          // Show filter info
-          showFlashNotice('Use the dropdowns and search box to filter products!');
-        }
-      });
-    }
   });
+
 </script>
